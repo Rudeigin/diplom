@@ -7,17 +7,31 @@ Window {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
+    title: qsTr("вуф вуф")
 
     property int mode: 0
+    property bool blocked: false
+    property real progress: 0
+    property string tabTitle: ""
+
+    Connections {
+        // TODO blocked = false
+        // TODO progress
+    }
 
     RowLayout {
+        visible: !blocked
         width: parent.width
         Button {
             Layout.alignment: Qt.AlignLeft
             text: "<-"
             onClicked: stack.pop()
         }
+
+        Text {
+            text: tabTitle
+        }
+
         Button {
             Layout.alignment: Qt.AlignRight
             text: "H"
@@ -31,8 +45,10 @@ Window {
         anchors.fill: parent
         onDepthChanged: {
             //Начальное отображение
-            if(depth == 1)
+            if(depth == 1) {
                 mode = 0
+                tabTitle = "Вундервафля приветствует"
+            }
         }
     }
 
@@ -74,38 +90,73 @@ Window {
     Component {
         id: qstView
 
-        ColumnLayout {
-            anchors.fill: parent
+        Item {
+            Component.onCompleted: {
+                tabTitle = "Выберите анкету:"
+            }
 
-            ListView {
-                Layout.alignment: Qt.AlignCenter
+            ColumnLayout {
                 anchors.fill: parent
-                delegate: Button {
-                    width: parent.width
-                    height: 80
 
-                    onClicked: {
-                        switch(mode) {
-                        case 1:
-                            //Передать номер анкеты -> запустить cv
-                            //Открыть заглушку поверх анкеты ожидания
-                            break;
-                        case 2:
-                            //Открыть анкету
-                            break;
-                        case 3:
-                            //Открыть базу данных
-                            break;
-                        default:
-                            stack.pop(null)
-                            break;
+                ListView {
+                    Layout.alignment: Qt.AlignCenter
+                    anchors.fill: parent
+                    delegate: Button {
+                        width: parent.width
+                        height: 80
+
+                        onClicked: {
+                            switch(mode) {
+                            case 1:
+                                //Передать номер анкеты -> запустить cv
+                                blocked = true //Открыть заглушку поверх анкеты ожидания
+                                break;
+                            case 2:
+                                //Открыть анкету
+                                break;
+                            case 3:
+                                //Открыть базу данных
+                                break;
+                            default:
+                                stack.pop(null)
+                                break;
+                            }
                         }
                     }
                 }
+                Button {
+                    Layout.alignment: Qt.AlignRight
+                    text: "Добавить новую анкету"
+
+                    onClicked: {
+// добавление новой анкеты
+                    }
+                }
             }
-            Button {
-                Layout.alignment: Qt.AlignRight
-                text: "Добавить новую анкету"
+
+            Rectangle {
+                id: cap
+                visible: blocked
+
+                anchors.fill: parent
+                color: "gray"
+                opacity: 0.5
+
+                ColumnLayout {
+                    width: parent.width * 0.6
+                    anchors.centerIn: parent
+                    Text {
+                        text: "Выполняется обработка... Пожалуйста, не выключайте компьютер"
+                        width: parent.width*(0.8)
+                        Layout.alignment: Qt.AlignCenter
+                    }
+                    ProgressBar {
+                        to: 100
+                        value: progress
+                        width: parent.width
+                        Layout.alignment: Qt.AlignCenter
+                    }
+                }
             }
         }
     }
