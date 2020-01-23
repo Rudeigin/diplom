@@ -1,0 +1,10 @@
+*.user
+*.user.*
+*cfg
+*~
+Thumbs.db
+Makefile
+*.so
+*.o
+moc_*
+qrc_*
