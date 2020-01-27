@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>FormDelegate.qml</file>
     </qresource>
 </RCC>

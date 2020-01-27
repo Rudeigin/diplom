@@ -6,24 +6,24 @@
 
 class Answer : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+  Q_PROPERTY(QString aText READ aText WRITE setAText NOTIFY aTextChanged)
   //Номер или буква ответа
   Q_PROPERTY(QString number READ number WRITE setNumber NOTIFY numberChanged)
   Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
 public:
   explicit Answer(QObject *parent = nullptr) : QObject(parent) {}
 
-  QString text() const { return m_text; }
+  QString aText() const { return m_text; }
   QString number() const { return m_number; }
   QPoint coord() const { return m_coord; }
 
 public slots:
-  void setText(QString text) {
+  void setAText(QString text) {
     if (m_text == text)
       return;
 
     m_text = text;
-    emit textChanged(m_text);
+    emit aTextChanged(m_text);
   }
 
   void setNumber(QString number) {
@@ -43,7 +43,7 @@ public slots:
   }
 
 signals:
-  void textChanged(QString text);
+  void aTextChanged(QString aText);
   void numberChanged(QString number);
   void coordChanged(QPoint coord);
 

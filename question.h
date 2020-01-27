@@ -7,7 +7,7 @@
 
 class Question : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+  Q_PROPERTY(QString qText READ qText WRITE setQText NOTIFY qTextChanged)
   Q_PROPERTY(int number READ number WRITE setNumber NOTIFY numberChanged)
   Q_PROPERTY(
       bool pickAFew READ pickAFew WRITE setPickAFew NOTIFY pickAFewChanged)
@@ -18,19 +18,19 @@ class Question : public QObject {
 public:
   explicit Question(QObject *parent = nullptr) : QObject(parent) {}
 
-  QString text() const { return m_text; }
+  QString qText() const { return m_text; }
   int number() const { return m_number; }
   bool pickAFew() const { return m_pickAFew; }
   QList<Answer *> answers() const { return m_answers; }
   QPoint coord() const { return m_coord; }
 
 public slots:
-  void setText(QString text) {
+  void setQText(QString text) {
     if (m_text == text)
       return;
 
     m_text = text;
-    emit textChanged(m_text);
+    emit qTextChanged(m_text);
   }
 
   void setNumber(int number) {
@@ -66,7 +66,7 @@ public slots:
   }
 
 signals:
-  void textChanged(QString text);
+  void qTextChanged(QString qText);
   void numberChanged(int number);
   void pickAFewChanged(bool pickAFew);
   void answersChanged(QList<Answer *> answers);
