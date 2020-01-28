@@ -1,15 +1,15 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#include <QObject>
 #include "form.h"
 
-class Interface : public QObject
-{
+#include <QObject>
+
+class Interface: public QObject {
     Q_OBJECT
     Q_PROPERTY(QList<Form*> model READ model WRITE setModel NOTIFY modelChanged)
 public:
-    explicit Interface(QObject *parent = nullptr);
+    explicit Interface(QObject* parent = nullptr);
 
 signals:
 

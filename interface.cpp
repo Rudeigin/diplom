@@ -1,6 +1,4 @@
 #include "interface.h"
 
-Interface::Interface(QObject *parent) : QObject(parent)
-{
-
+Interface::Interface(QObject* parent): QObject(parent) {
 }
