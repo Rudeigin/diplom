@@ -1,22 +1,41 @@
 #ifndef ANSWER_H
 #define ANSWER_H
 
+#include "listitem.h"
+
 #include <QObject>
 #include <QPoint>
 
-class Answer: public QObject {
+class Answer: public ListItem {
     Q_OBJECT
     Q_PROPERTY(QString aText READ aText WRITE setAText NOTIFY aTextChanged)
     //Номер или буква ответа
     Q_PROPERTY(QString number READ number WRITE setNumber NOTIFY numberChanged)
     Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
 public:
-    explicit Answer(QObject* parent = nullptr): QObject(parent) {
+    explicit Answer(QObject* parent = nullptr): ListItem(parent) {
+        m_coord = QPoint();
+        m_number = "0";
+        m_text = "";
     }
-    Answer(const Answer& ans): QObject(ans.parent()) {
+    Answer(const Answer& ans): ListItem(ans.parent()) {
         m_text = ans.m_text;
         m_number = ans.m_number;
         m_coord = ans.m_coord;
+    }
+
+    void initFromMap(const QVariantMap& map) override {
+        m_text = map.value("text").toString();
+        m_number = map.value("number").toInt();
+        m_coord = map.value("coord").toPoint();
+    }
+
+    QVariantMap toMap() const override {
+        QVariantMap map;
+        map.insert("text", m_text);
+        map.insert("number", m_number);
+        map.insert("coord", m_coord);
+        return map;
     }
 
     QString aText() const {
@@ -36,6 +55,7 @@ public slots:
 
         m_text = text;
         emit aTextChanged(m_text);
+        emit dataChanged();
     }
 
     void setNumber(QString number) {
@@ -44,6 +64,7 @@ public slots:
 
         m_number = number;
         emit numberChanged(m_number);
+        emit dataChanged();
     }
 
     void setCoord(QPoint coord) {
@@ -52,6 +73,7 @@ public slots:
 
         m_coord = coord;
         emit coordChanged(m_coord);
+        emit dataChanged();
     }
 
 signals:

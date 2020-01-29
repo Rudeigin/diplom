@@ -20,6 +20,7 @@ Window {
     }
 
     RowLayout {
+        id: topBar
         visible: !blocked
         width: parent.width
         Button {
@@ -42,12 +43,17 @@ Window {
     StackView {
         id: stack
         initialItem: mainView
-        anchors.fill: parent
+
+        width: parent.width
+        anchors.bottom: parent.bottom
+        anchors.top: topBar.bottom
+        anchors.topMargin: 5
+
         onDepthChanged: {
             //Начальное отображение
             if(depth == 1) {
                 mode = 0
-                tabTitle = qsTr("ssss %1").arg("123")// "Вундервафля приветствует"
+                tabTitle = "Вундервафля приветствует"
             }
         }
     }
@@ -55,33 +61,29 @@ Window {
     Component {
         id: mainView
 
-        Item {
-            anchors.fill: parent
-            ColumnLayout {
-                anchors.fill: parent
-                Button {
-                    Layout.alignment: Qt.AlignCenter
-                    text: "Загрузить результаты"
-                    onClicked: {
-                        mode = 1
-                        stack.push()
-                    }
+        ColumnLayout {
+            Button {
+                Layout.alignment: Qt.AlignCenter
+                text: "Загрузить результаты"
+                onClicked: {
+                    mode = 1
+                    stack.push()
                 }
-                Button {
-                    Layout.alignment: Qt.AlignCenter
-                    text: "Шаблоны анкеты"
-                    onClicked: {
-                        mode = 2
-                        stack.push(qstView)
-                    }
+            }
+            Button {
+                Layout.alignment: Qt.AlignCenter
+                text: "Шаблоны анкеты"
+                onClicked: {
+                    mode = 2
+                    stack.push(qstView)
                 }
-                Button {
-                    Layout.alignment: Qt.AlignCenter
-                    text: "База данных"
-                    onClicked: {
-                        mode = 3
-                        stack.push(qstView)
-                    }
+            }
+            Button {
+                Layout.alignment: Qt.AlignCenter
+                text: "База данных"
+                onClicked: {
+                    mode = 3
+                    stack.push(qstView)
                 }
             }
         }
@@ -90,74 +92,84 @@ Window {
     Component {
         id: qstView
 
-        Item {
+        ColumnLayout {
             Component.onCompleted: {
                 tabTitle = "Выберите анкету:"
             }
+            ListView {
+                id: formsLView
+                width: parent.width
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignHCenter
+                model: Interface.model()
+                spacing: 7
+                delegate: Button {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: 80
+                    text: title
 
-            ColumnLayout {
-                anchors.fill: parent
-
-                ListView {
-                    Layout.alignment: Qt.AlignCenter
-                    anchors.fill: parent
-                    delegate: Button {
-                        width: parent.width
-                        height: 80
-
-                        onClicked: {
-                            switch(mode) {
-                            case 1:
-                                //Передать номер анкеты -> запустить cv
-                                blocked = true //Открыть заглушку поверх анкеты ожидания
-                                break;
-                            case 2:
-                                //Открыть анкету
-                                break;
-                            case 3:
-                                //Открыть базу данных
-                                break;
-                            default:
-                                stack.pop(null)
-                                break;
-                            }
+                    onClicked: {
+                        switch(mode) {
+                        case 1:
+                            //Передать номер анкеты -> запустить cv
+                            blocked = true //Открыть заглушку поверх анкеты ожидания
+                            break;
+                        case 2:
+                            //Открыть анкету
+                            stack.push(formView, {"form" : formsLView.currentItem})
+                            break;
+                        case 3:
+                            //Открыть базу данных
+                            break;
+                        default:
+                            stack.pop(null)
+                            break;
                         }
                     }
                 }
-                Button {
-                    Layout.alignment: Qt.AlignRight
-                    text: "Добавить новую анкету"
-
-                    onClicked: {
-// добавление новой анкеты
-                    }
-                }
             }
+            Button {
+                Layout.alignment: Qt.AlignRight | Qt.AlignBottom
+                text: "Добавить новую анкету"
 
-            Rectangle {
-                id: cap
-                visible: blocked
-
-                anchors.fill: parent
-                color: "gray"
-                opacity: 0.5
-
-                ColumnLayout {
-                    width: parent.width * 0.6
-                    anchors.centerIn: parent
-                    Text {
-                        text: "Выполняется обработка... Пожалуйста, не выключайте компьютер"
-                        width: parent.width*(0.8)
-                        Layout.alignment: Qt.AlignCenter
-                    }
-                    ProgressBar {
-                        to: 100
-                        value: progress
-                        width: parent.width
-                        Layout.alignment: Qt.AlignCenter
-                    }
+                onClicked: {
+                    // добавление новой анкеты
+                    Interface.addForm("sssss")
                 }
             }
         }
     }
+
+    Component {
+        id: formView
+
+        FormDelegate {}
+    }
 }
+
+
+
+//Rectangle {
+//    id: cap
+//    visible: blocked
+
+//    anchors.fill: parent
+//    color: "gray"
+//    opacity: 0.5
+
+//    ColumnLayout {
+//        width: parent.width * 0.6
+//        anchors.centerIn: parent
+//        Text {
+//            text: "Выполняется обработка... Пожалуйста, не выключайте компьютер"
+//            width: parent.width*(0.8)
+//            Layout.alignment: Qt.AlignCenter
+//        }
+//        ProgressBar {
+//            to: 100
+//            value: progress
+//            width: parent.width
+//            Layout.alignment: Qt.AlignCenter
+//        }
+//    }
+//}

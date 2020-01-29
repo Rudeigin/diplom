@@ -2,27 +2,50 @@
 #define QUESTION_H
 
 #include "answer.h"
+#include "listmodel.h"
 
 #include <QObject>
 #include <QPoint>
 
-class Question: public QObject {
+class Question: public ListItem {
     Q_OBJECT
     Q_PROPERTY(QString qText READ qText WRITE setQText NOTIFY qTextChanged)
     Q_PROPERTY(int number READ number WRITE setNumber NOTIFY numberChanged)
     Q_PROPERTY(bool pickAFew READ pickAFew WRITE setPickAFew NOTIFY pickAFewChanged)
-    Q_PROPERTY(QList<Answer*> answers READ answers WRITE setAnswers NOTIFY answersChanged)
     Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
 
 public:
-    explicit Question(QObject* parent = nullptr): QObject(parent) {
+    explicit Question(QObject* parent = nullptr): ListItem(parent) {
+        m_answers = new ListModel(this);
     }
-    Question(const Question& qst): QObject(qst.parent()) {
+    Question(const Question& qst): ListItem(qst.parent()) {
         m_text = qst.m_text;
         m_number = qst.m_number;
         m_pickAFew = qst.m_pickAFew;
-        m_answers = qst.m_answers;
+        m_answers->initFromMap(qst.m_answers->toMap());
         m_coord = qst.m_coord;
+    }
+
+    ~Question() {
+        delete m_answers;
+    }
+
+    void initFromMap(const QVariantMap& map) override {
+        m_text = map.value("text").toString();
+        m_number = map.value("number").toInt();
+        m_pickAFew = map.value("pickAFew").toBool();
+        m_answers->initFromMap(map.value("answers").toMap());
+        m_coord = map.value("coord").toPoint();
+    }
+
+    QVariantMap toMap() const override {
+        QVariantMap map;
+        map.insert("text", m_text);
+        map.insert("number", m_number);
+        map.insert("pickAFew", m_pickAFew);
+        map.insert("questions", m_answers->toMap());
+        map.insert("coord", m_coord);
+        return map;
     }
 
     QString qText() const {
@@ -34,11 +57,20 @@ public:
     bool pickAFew() const {
         return m_pickAFew;
     }
-    QList<Answer*> answers() const {
+    Q_INVOKABLE ListModel* answers() const {
         return m_answers;
     }
     QPoint coord() const {
         return m_coord;
+    }
+
+    Q_INVOKABLE void addAnswer(QString number, QString text) {
+        Answer* ans = new Answer(this);
+        ans->setAText(text);
+        ans->setNumber(number);
+        m_answers->appendRow(ans);
+
+        emit dataChanged();
     }
 
 public slots:
@@ -48,6 +80,7 @@ public slots:
 
         m_text = text;
         emit qTextChanged(m_text);
+        emit dataChanged();
     }
 
     void setNumber(int number) {
@@ -56,6 +89,7 @@ public slots:
 
         m_number = number;
         emit numberChanged(m_number);
+        emit dataChanged();
     }
 
     void setPickAFew(bool pickAFew) {
@@ -64,14 +98,7 @@ public slots:
 
         m_pickAFew = pickAFew;
         emit pickAFewChanged(m_pickAFew);
-    }
-
-    void setAnswers(QList<Answer*> answers) {
-        if(m_answers == answers)
-            return;
-
-        m_answers = answers;
-        emit answersChanged(m_answers);
+        emit dataChanged();
     }
 
     void setCoord(QPoint coord) {
@@ -80,20 +107,20 @@ public slots:
 
         m_coord = coord;
         emit coordChanged(m_coord);
+        emit dataChanged();
     }
 
 signals:
     void qTextChanged(QString qText);
     void numberChanged(int number);
     void pickAFewChanged(bool pickAFew);
-    void answersChanged(QList<Answer*> answers);
     void coordChanged(QPoint coord);
 
 private:
     QString m_text;
     int m_number;
     bool m_pickAFew;
-    QList<Answer*> m_answers;
+    ListModel* m_answers;
     QPoint m_coord;
 };
 Q_DECLARE_METATYPE(Question)

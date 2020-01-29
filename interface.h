@@ -2,21 +2,20 @@
 #define INTERFACE_H
 
 #include "form.h"
+#include "listmodel.h"
 
 #include <QObject>
 
 class Interface: public QObject {
     Q_OBJECT
-    Q_PROPERTY(QList<Form*> model READ model WRITE setModel NOTIFY modelChanged)
 public:
-    explicit Interface(QObject* parent = nullptr);
+    Interface(QObject* parent = nullptr);
 
-signals:
-
-public slots:
+    Q_INVOKABLE ListModel* model();
+    Q_INVOKABLE void addForm(QString title);
 
 private:
-    QList<Form*> m_model;
+    ListModel* m_model;
 };
 
 #endif // INTERFACE_H
