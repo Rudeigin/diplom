@@ -10,11 +10,13 @@ int main(int argc, char* argv[]) {
     QGuiApplication app(argc, argv);
 
     Interface* inf = new Interface();
-    inf->addForm("1234");
+    inf->addForm("Оценка привычек в питании");
     Form* f = qobject_cast<Form*>(inf->model()->row(0));
     f->addQuestion(0, "Вопрос 1", false);
     f->addQuestion(1, "Вопрос 2", false);
-    inf->addForm("adf");
+    inf->addForm("Определение риска ИБС");
+    inf->addForm("Оценка физической формы");
+//    inf->addForm("Анкета для курильщиков");
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("Interface", inf);

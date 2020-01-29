@@ -4,10 +4,11 @@ import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 
 Window {
+    id: win
     visible: true
-    width: 640
-    height: 480
-    title: qsTr("вуф вуф")
+    width: 300
+    height: 370
+    title: qsTr("Система обработки результатов анкетирования")
 
     property int mode: 0
     property bool blocked: false
@@ -53,7 +54,7 @@ Window {
             //Начальное отображение
             if(depth == 1) {
                 mode = 0
-                tabTitle = "Вундервафля приветствует"
+                tabTitle = "Выберите действие"
             }
         }
     }
@@ -65,6 +66,8 @@ Window {
             Button {
                 Layout.alignment: Qt.AlignCenter
                 text: "Загрузить результаты"
+                implicitHeight: 80
+                implicitWidth: 200
                 onClicked: {
                     mode = 1
                     stack.push()
@@ -72,7 +75,9 @@ Window {
             }
             Button {
                 Layout.alignment: Qt.AlignCenter
-                text: "Шаблоны анкеты"
+                text: "Шаблоны анкет"
+                implicitHeight: 80
+                implicitWidth: 200
                 onClicked: {
                     mode = 2
                     stack.push(qstView)
@@ -81,6 +86,8 @@ Window {
             Button {
                 Layout.alignment: Qt.AlignCenter
                 text: "База данных"
+                implicitHeight: 80
+                implicitWidth: 200
                 onClicked: {
                     mode = 3
                     stack.push(qstView)
@@ -105,7 +112,8 @@ Window {
                 spacing: 7
                 delegate: Button {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    height: 80
+                    implicitHeight: 80
+                    implicitWidth: 250
                     text: title
 
                     onClicked: {
@@ -127,8 +135,34 @@ Window {
                         }
                     }
                 }
+
+//                Rectangle {
+//                    z: aaa.z + 1
+//                    anchors.top: parent.top
+//                    anchors.topMargin: -topBar.height - 5
+//                    color: "gray"
+//                    opacity: 0.7
+//                    width: 300
+//                    height: 410
+//                    Text {
+//                        anchors.bottom: prB.top
+//                        anchors.bottomMargin: 5
+//                        text: "Обработано анкет: 2/10..."
+//                    }
+
+//                    ProgressBar {
+//                        id: prB
+//                        anchors.bottom: parent.bottom
+//                        anchors.bottomMargin: 100
+//                        width: parent.width
+//                        from: 0
+//                        to: 10
+//                        value: 2
+//                    }
+//                }
             }
             Button {
+                id: aaa
                 Layout.alignment: Qt.AlignRight | Qt.AlignBottom
                 text: "Добавить новую анкету"
 
@@ -136,6 +170,11 @@ Window {
                     // добавление новой анкеты
                     Interface.addForm("sssss")
                 }
+//                Rectangle {
+//                    color: "gray"
+//                    opacity: 0.7
+//                    anchors.fill: parent
+//                }
             }
         }
     }
