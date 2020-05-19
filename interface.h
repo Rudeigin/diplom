@@ -8,11 +8,16 @@
 
 class Interface: public QObject {
     Q_OBJECT
+    Q_PROPERTY(ListModel* model READ model NOTIFY modelChanged)
 public:
     Interface(QObject* parent = nullptr);
 
-    Q_INVOKABLE ListModel* model();
+    ListModel* model();
+    Q_INVOKABLE Form* getForm(int index);
     Q_INVOKABLE void addForm(QString title);
+
+signals:
+    void modelChanged(ListModel* model);
 
 private:
     ListModel* m_model;

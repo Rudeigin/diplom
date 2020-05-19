@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>FormDelegate.qml</file>
+        <file>back.png</file>
+        <file>home.png</file>
     </qresource>
 </RCC>

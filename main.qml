@@ -1,7 +1,9 @@
 import QtQuick 2.9
 import QtQuick.Window 2.2
+import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
+import QtGraphicalEffects 1.0
 
 Window {
     id: win
@@ -23,21 +25,52 @@ Window {
     RowLayout {
         id: topBar
         visible: !blocked
-        width: parent.width
-        Button {
+        width: win.width
+        Rectangle {
             Layout.alignment: Qt.AlignLeft
-            text: "<-"
-            onClicked: stack.pop()
+            width: back.width + 10
+            height: back.height + 10
+            color: "lightgrey"
+            Image {
+                id: back
+                source: "qrc:///back.png"
+                sourceSize.width: 35
+                anchors.centerIn: parent
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: stack.pop()
+                }
+            }
         }
 
-        Text {
-            text: tabTitle
-        }
+//        Item {
+            Text {
+//                width: 210
+                text: tabTitle
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                font.bold: true
+                font.pixelSize: 18
+            }
+//        }
 
-        Button {
+        Rectangle {
             Layout.alignment: Qt.AlignRight
-            text: "H"
-            onClicked: stack.pop(null)
+            width: home.width + 10
+            height: width
+            color: "lightgrey"
+            Image {
+                id: home
+                source: "qrc:///home.png"
+                sourceSize.width: 35
+                anchors.centerIn: parent
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: stack.pop(null)
+                }
+            }
         }
     }
 
@@ -108,7 +141,7 @@ Window {
                 width: parent.width
                 Layout.fillHeight: true
                 Layout.alignment: Qt.AlignHCenter
-                model: Interface.model()
+                model: Interface.model
                 spacing: 7
                 delegate: Button {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -124,10 +157,11 @@ Window {
                             break;
                         case 2:
                             //Открыть анкету
-                            stack.push(formView, {"form" : formsLView.currentItem})
+                            stack.push(formView, {"form" : Interface.getForm(formsLView.currentIndex)})
                             break;
                         case 3:
                             //Открыть базу данных
+                            stack.push(baseView)
                             break;
                         default:
                             stack.pop(null)
@@ -183,6 +217,65 @@ Window {
         id: formView
 
         FormDelegate {}
+    }
+
+    ListModel {
+        id: base
+        ListElement {
+            fio: "Петров А. А."
+            answ1: "3"
+            answ2: "1, 2"
+            answ3: "1"
+            answ4: "5"
+            answ5: "3"
+            answ6: "4"
+            answ7: "2, 4"
+            answ8: "3"
+        }
+        ListElement {
+            fio: "Козин С. Е."
+            answ1: "2"
+            answ2: "1, 3"
+            answ3: "2"
+            answ4: "4"
+            answ5: "3"
+            answ6: "4"
+            answ7: "1, 4"
+            answ8: "1"
+        }
+        ListElement {
+            fio: "Сидорчукова В. В."
+            answ1: "2"
+            answ2: "3, 4"
+            answ3: "2"
+            answ4: "3"
+            answ5: "1"
+            answ6: "2"
+            answ7: "2, 3"
+            answ8: "3"
+        }
+    }
+
+    Component {
+        id: baseView
+
+
+        TableView {
+            id: table
+            anchors.fill: parent
+            clip: true
+            model: base
+
+            TableViewColumn { role: "fio"; title: "ФИО"; width: table.width * 20 / 100;  }
+            TableViewColumn { role: "answ1"; title: "1"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ2"; title: "2"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ3"; title: "3"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ4"; title: "4"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ5"; title: "5"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ6"; title: "6"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ7"; title: "7"; width: table.width * 10 / 100 }
+            TableViewColumn { role: "answ8"; title: "8"; width: table.width * 10 / 100 }
+        }
     }
 }
 

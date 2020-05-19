@@ -9,7 +9,7 @@
 class Form: public ListItem {
     Q_OBJECT
     Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged)
-    Q_PROPERTY(ListModel* questions READ questions)
+    Q_PROPERTY(ListModel* questions READ questions NOTIFY questionsChanged)
 
 public:
     explicit Form(QObject* parent = nullptr): ListItem(parent) {
@@ -41,7 +41,7 @@ public:
         return m_title;
     }
 
-    Q_INVOKABLE ListModel* questions() const {
+    ListModel* questions() const {
         return m_questions;
     }
 
@@ -52,6 +52,7 @@ public:
         qst->setPickAFew(pickAFew);
         m_questions->appendRow(qst);
 
+        emit questionsChanged(m_questions);
         emit dataChanged();
     }
 
@@ -67,6 +68,7 @@ public slots:
 
 signals:
     void titleChanged(QString title);
+    void questionsChanged(ListModel* questions);
 
 private:
     QString m_title;

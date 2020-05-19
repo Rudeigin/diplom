@@ -13,7 +13,7 @@ class Question: public ListItem {
     Q_PROPERTY(int number READ number WRITE setNumber NOTIFY numberChanged)
     Q_PROPERTY(bool pickAFew READ pickAFew WRITE setPickAFew NOTIFY pickAFewChanged)
     Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
-
+    Q_PROPERTY(ListModel* answers READ answers NOTIFY answersChanged)
 public:
     explicit Question(QObject* parent = nullptr): ListItem(parent) {
         m_answers = new ListModel(this);
@@ -57,7 +57,7 @@ public:
     bool pickAFew() const {
         return m_pickAFew;
     }
-    Q_INVOKABLE ListModel* answers() const {
+    ListModel* answers() const {
         return m_answers;
     }
     QPoint coord() const {
@@ -70,6 +70,7 @@ public:
         ans->setNumber(number);
         m_answers->appendRow(ans);
 
+        emit answersChanged(m_answers);
         emit dataChanged();
     }
 
@@ -115,6 +116,7 @@ signals:
     void numberChanged(int number);
     void pickAFewChanged(bool pickAFew);
     void coordChanged(QPoint coord);
+    void answersChanged(ListModel* answers);
 
 private:
     QString m_text;
