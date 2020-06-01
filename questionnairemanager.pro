@@ -13,7 +13,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    listmodel.cpp \
+    items/listmodel.cpp \
         main.cpp \
     interface.cpp
 
@@ -31,9 +31,14 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    answer.h \
-    form.h \
-    listitem.h \
-    listmodel.h \
-    question.h \
+    items/answer.h \
+    items/form.h \
+    items/listitem.h \
+    items/listmodel.h \
+    items/question.h \
+    pageDefines.h \
     interface.h
+
+INCLUDEPATH += -I/usr/local/include/opencv4/
+LIBS += -L/usr/local/lib
+LIBS += -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui

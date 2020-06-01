@@ -60,7 +60,6 @@ Item {
 
     Dialog {
         id: addQ
-
     }
 
     Dialog {

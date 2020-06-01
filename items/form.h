@@ -4,65 +4,73 @@
 #include "listmodel.h"
 #include "question.h"
 
+#include <QFont>
 #include <QObject>
 
 class Form: public ListItem {
     Q_OBJECT
     Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged)
     Q_PROPERTY(ListModel* questions READ questions NOTIFY questionsChanged)
+    Q_PROPERTY(QFont font READ font NOTIFY fontChanged)
 
 public:
     explicit Form(QObject* parent = nullptr): ListItem(parent) {
-        m_title = "";
-        m_questions = new ListModel(this);
+        _title = "";
+        _questions = new ListModel(this);
     }
     Form(const Form& frm): ListItem(frm.parent()) {
-        m_title = frm.m_title;
-        m_questions->initFromMap(frm.questions()->toMap());
+        _title = frm._title;
+        _questions->initFromMap(frm.questions()->toMap());
     }
 
     ~Form() {
-        delete m_questions;
+        delete _questions;
     }
 
     void initFromMap(const QVariantMap& map) override {
-        m_title = map.value("title").toString();
-        m_questions->initFromMap(map.value("questions").toMap());
+        _title = map.value("title").toString();
+        _questions->initFromMap(map.value("questions").toMap());
     }
 
     QVariantMap toMap() const override {
         QVariantMap map;
-        map.insert("title", m_title);
-        map.insert("questions", m_questions->toMap());
+        map.insert("title", _title);
+        map.insert("questions", _questions->toMap());
         return map;
     }
 
     QString title() const {
-        return m_title;
+        return _title;
     }
 
     ListModel* questions() const {
-        return m_questions;
+        return _questions;
     }
 
-    Q_INVOKABLE void addQuestion(int number, QString text, bool pickAFew) {
+    QFont font() const {
+        return _font;
+    }
+
+    Q_INVOKABLE Question* addQuestion(int number, QString text, bool pickAFew) {
         Question* qst = new Question(this);
-        qst->setQText(text);
+        qst->setText(text);
         qst->setNumber(number);
         qst->setPickAFew(pickAFew);
-        m_questions->appendRow(qst);
+        _questions->appendRow(qst);
 
-        emit questionsChanged(m_questions);
+        emit questionsChanged(_questions);
         emit dataChanged();
+
+        return qst;
     }
 
 public slots:
     void setTitle(QString title) {
-        if(m_title == title)
+        if(_title == title)
             return;
 
-        m_title = title;
-        emit titleChanged(m_title);
+        _title = title;
+        emit titleChanged(_title);
         emit dataChanged();
     }
 
@@ -70,9 +78,12 @@ signals:
     void titleChanged(QString title);
     void questionsChanged(ListModel* questions);
 
+    void fontChanged(QFont* font);
+
 private:
-    QString m_title;
-    ListModel* m_questions;
+    QString _title;
+    ListModel* _questions;
+    QFont _font;
 };
 
 Q_DECLARE_METATYPE(Form)

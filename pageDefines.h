@@ -1,0 +1,7 @@
+#ifndef PAGEDEFINES_H
+#define PAGEDEFINES_H
+
+#define LINE_SPACING 12
+#define ANSW_SPACING 10
+
+#endif // PAGEDEFINES_H

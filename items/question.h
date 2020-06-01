@@ -9,7 +9,7 @@
 
 class Question: public ListItem {
     Q_OBJECT
-    Q_PROPERTY(QString qText READ qText WRITE setQText NOTIFY qTextChanged)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
     Q_PROPERTY(int number READ number WRITE setNumber NOTIFY numberChanged)
     Q_PROPERTY(bool pickAFew READ pickAFew WRITE setPickAFew NOTIFY pickAFewChanged)
     Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
@@ -48,7 +48,7 @@ public:
         return map;
     }
 
-    QString qText() const {
+    QString text() const {
         return m_text;
     }
     int number() const {
@@ -66,7 +66,7 @@ public:
 
     Q_INVOKABLE void addAnswer(QString number, QString text) {
         Answer* ans = new Answer(this);
-        ans->setAText(text);
+        ans->setText(text);
         ans->setNumber(number);
         m_answers->appendRow(ans);
 
@@ -75,12 +75,12 @@ public:
     }
 
 public slots:
-    void setQText(QString text) {
+    void setText(QString text) {
         if(m_text == text)
             return;
 
         m_text = text;
-        emit qTextChanged(m_text);
+        emit textChanged(m_text);
         emit dataChanged();
     }
 
@@ -112,7 +112,7 @@ public slots:
     }
 
 signals:
-    void qTextChanged(QString qText);
+    void textChanged(QString text);
     void numberChanged(int number);
     void pickAFewChanged(bool pickAFew);
     void coordChanged(QPoint coord);

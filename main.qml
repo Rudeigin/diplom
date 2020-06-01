@@ -5,6 +5,13 @@ import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import QtGraphicalEffects 1.0
 
+/*
+  1. Предпросмотр pdf
+  2. Редактирование анкеты
+  3. Выбор шрифта, размера и размера листа для анкеты
+  4. Выбор папки с файлами и ожидание обработки
+  */
+
 Window {
     id: win
     visible: true
@@ -259,7 +266,6 @@ Window {
     Component {
         id: baseView
 
-
         TableView {
             id: table
             anchors.fill: parent
@@ -278,30 +284,3 @@ Window {
         }
     }
 }
-
-
-
-//Rectangle {
-//    id: cap
-//    visible: blocked
-
-//    anchors.fill: parent
-//    color: "gray"
-//    opacity: 0.5
-
-//    ColumnLayout {
-//        width: parent.width * 0.6
-//        anchors.centerIn: parent
-//        Text {
-//            text: "Выполняется обработка... Пожалуйста, не выключайте компьютер"
-//            width: parent.width*(0.8)
-//            Layout.alignment: Qt.AlignCenter
-//        }
-//        ProgressBar {
-//            to: 100
-//            value: progress
-//            width: parent.width
-//            Layout.alignment: Qt.AlignCenter
-//        }
-//    }
-//}

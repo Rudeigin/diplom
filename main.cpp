@@ -12,12 +12,19 @@ int main(int argc, char* argv[]) {
     Interface* inf = new Interface();
     inf->addForm("Оценка привычек в питании");
     Form* f = qobject_cast<Form*>(inf->model()->row(0));
-    f->addQuestion(0, "Вопрос 1", false);
-    f->addQuestion(1, "Вопрос 2", false);
+    f->addQuestion(1, "Вопрос 1", false);
+    Question* qst = qobject_cast<Question*>(f->questions()->row(0));
+    qst->addAnswer("a", "Ответ 1");
+    qst->addAnswer("б", "Ответ 2");
+    f->addQuestion(2, "Вопрос 2", false);
+    qst = qobject_cast<Question*>(f->questions()->row(1));
+    qst->addAnswer("a", "Ответ 1");
+    qst->addAnswer("б", "Ответ 2");
     inf->addForm("Определение риска ИБС");
     inf->addForm("Оценка физической формы");
-//    inf->addForm("Анкета для курильщиков");
+    //    inf->addForm("Анкета для курильщиков");
 
+    //    inf->createPdf(f);
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("Interface", inf);
 

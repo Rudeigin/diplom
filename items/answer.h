@@ -8,7 +8,7 @@
 
 class Answer: public ListItem {
     Q_OBJECT
-    Q_PROPERTY(QString aText READ aText WRITE setAText NOTIFY aTextChanged)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
     //Номер или буква ответа
     Q_PROPERTY(QString number READ number WRITE setNumber NOTIFY numberChanged)
     Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
@@ -38,7 +38,7 @@ public:
         return map;
     }
 
-    QString aText() const {
+    QString text() const {
         return m_text;
     }
     QString number() const {
@@ -49,12 +49,12 @@ public:
     }
 
 public slots:
-    void setAText(QString text) {
+    void setText(QString text) {
         if(m_text == text)
             return;
 
         m_text = text;
-        emit aTextChanged(m_text);
+        emit textChanged(m_text);
         emit dataChanged();
     }
 
@@ -77,7 +77,7 @@ public slots:
     }
 
 signals:
-    void aTextChanged(QString aText);
+    void textChanged(QString text);
     void numberChanged(QString number);
     void coordChanged(QPoint coord);
 
