@@ -26,7 +26,7 @@ public:
 
     void initFromMap(const QVariantMap& map) override {
         m_text = map.value("text").toString();
-        m_number = map.value("number").toInt();
+        m_number = map.value("number").toString();
         m_coord = map.value("coord").toPoint();
     }
 

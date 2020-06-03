@@ -23,7 +23,7 @@ public:
         _questions->initFromMap(frm.questions()->toMap());
     }
 
-    ~Form() {
+    ~Form() override {
         delete _questions;
     }
 

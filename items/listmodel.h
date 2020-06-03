@@ -37,6 +37,10 @@ public:
     //! Возвращает данные, соответствующие роли role, элемента, расположенного в index.row()
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 
+    //! Изменяет данные, соответствующие роли role, элемента, расположенного в index.row()
+    virtual bool
+    setData(const QModelIndex& index, const QVariant& value, int role = Qt::DisplayRole);
+
     //! Возвращает QMap значений для всех ролей элемента, расположенного в index.row()
     virtual QMap<int, QVariant> itemData(const QModelIndex& index) const;
 
@@ -54,9 +58,6 @@ public:
 
     //! Удаляет элемент из модели (сам элемент удаляется!)
     virtual bool removeRow(int row, const QModelIndex& parent = QModelIndex());
-
-    //! Удаляет count элементов из модели, начиная с позиции row (сами элементы удаляются!)
-    virtual bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex());
 
     //! Удаляет элемент, находящийся в позиции row из модели и возвращает указатель на него (сам
     //! элемент не удаляется!)

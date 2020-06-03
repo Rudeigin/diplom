@@ -1,8 +1,9 @@
 import QtQuick 2.9
-import QtQuick.Window 2.2
 import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
+import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
+import QtQuick.Window 2.2
 import QtGraphicalEffects 1.0
 
 /*
@@ -29,6 +30,7 @@ Window {
         // TODO progress
     }
 
+    // верхняя строка
     RowLayout {
         id: topBar
         visible: !blocked
@@ -51,16 +53,13 @@ Window {
             }
         }
 
-//        Item {
-            Text {
-//                width: 210
-                text: tabTitle
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                font.pixelSize: 18
-            }
-//        }
+        Text {
+            text: tabTitle
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            font.bold: true
+            font.pixelSize: 18
+        }
 
         Rectangle {
             Layout.alignment: Qt.AlignRight
@@ -81,6 +80,7 @@ Window {
         }
     }
 
+    // вьюха в центре
     StackView {
         id: stack
         initialItem: mainView
@@ -89,6 +89,41 @@ Window {
         anchors.bottom: parent.bottom
         anchors.top: topBar.bottom
         anchors.topMargin: 5
+
+        // смена не слайдом, а через плавное появление
+        pushEnter: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 0
+                to:1
+                duration: 100
+            }
+        }
+        pushExit: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to:0
+                duration: 100
+            }
+        }
+
+        popEnter: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 0
+                to:1
+                duration: 100
+            }
+        }
+        popExit: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to:0
+                duration: 100
+            }
+        }
 
         onDepthChanged: {
             //Начальное отображение
@@ -110,7 +145,7 @@ Window {
                 implicitWidth: 200
                 onClicked: {
                     mode = 1
-                    stack.push()
+                    stack.push(qstView)
                 }
             }
             Button {
@@ -160,7 +195,8 @@ Window {
                         switch(mode) {
                         case 1:
                             //Передать номер анкеты -> запустить cv
-                            blocked = true //Открыть заглушку поверх анкеты ожидания
+                            fileDialog.form = Interface.getForm(formsLView.currentIndex)
+                            fileDialog.open()
                             break;
                         case 2:
                             //Открыть анкету
@@ -176,31 +212,6 @@ Window {
                         }
                     }
                 }
-
-//                Rectangle {
-//                    z: aaa.z + 1
-//                    anchors.top: parent.top
-//                    anchors.topMargin: -topBar.height - 5
-//                    color: "gray"
-//                    opacity: 0.7
-//                    width: 300
-//                    height: 410
-//                    Text {
-//                        anchors.bottom: prB.top
-//                        anchors.bottomMargin: 5
-//                        text: "Обработано анкет: 2/10..."
-//                    }
-
-//                    ProgressBar {
-//                        id: prB
-//                        anchors.bottom: parent.bottom
-//                        anchors.bottomMargin: 100
-//                        width: parent.width
-//                        from: 0
-//                        to: 10
-//                        value: 2
-//                    }
-//                }
             }
             Button {
                 id: aaa
@@ -211,13 +222,68 @@ Window {
                     // добавление новой анкеты
                     Interface.addForm("sssss")
                 }
-//                Rectangle {
-//                    color: "gray"
-//                    opacity: 0.7
-//                    anchors.fill: parent
-//                }
             }
         }
+    }
+
+    FileDialog {
+        id: fileDialog
+
+        property QtObject form
+        title: "Выберите папку"
+        folder: shortcuts.home
+        selectFolder: true
+        selectMultiple: false
+        selectExisting: true
+        onAccepted: {
+            console.log("You chose: " + fileDialog.fileUrls)
+            Interface.processForms(form, fileDialog.fileUrls)
+            dummy.visible = true
+        }
+        onRejected: {
+            console.log("Canceled")
+        }
+    }
+
+    Connections{
+        target: Interface
+        onFormProcessingTotalCount: {
+            dummy.totalCount = count
+        }
+        onFormProcessingProgress: {
+            dummy.progress = progress
+        }
+        onFormProcessingFinished: {
+            dummy.progress = 0
+            dummy.visible = false
+        }
+    }
+
+    // заглушка обработки
+    Rectangle {
+        id: dummy
+        property int progress: 0
+        property int totalCount: 0
+
+        anchors.fill: parent
+        color: "gray"
+        opacity: 0.7
+        Text {
+            anchors.bottom: prB.top
+            anchors.bottomMargin: 5
+            text: qsTr("Обработано анкет: %1/%2...").arg(dummy.progress).arg(dummy.totalCount)
+        }
+
+        ProgressBar {
+            id: prB
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 100
+            width: parent.width
+            from: 0
+            to: dummy.totalCount
+            value: dummy.progress
+        }
+        visible: false
     }
 
     Component {

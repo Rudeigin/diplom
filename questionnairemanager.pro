@@ -39,7 +39,7 @@ HEADERS += \
     pageDefines.h \
     interface.h
 
-INCLUDEPATH += -I/usr/local/include/opencv4/
-LIBS += -L/usr/local/lib
-LIBS += -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui
+#INCLUDEPATH += -I/usr/local/include/opencv4/
+#LIBS += -L/usr/local/lib
+#LIBS += -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui
 LIBS += -lpoppler-qt5

@@ -43,7 +43,7 @@ public:
         map.insert("text", m_text);
         map.insert("number", m_number);
         map.insert("pickAFew", m_pickAFew);
-        map.insert("questions", m_answers->toMap());
+        map.insert("answers", m_answers->toMap());
         map.insert("coord", m_coord);
         return map;
     }

@@ -68,25 +68,28 @@ QVariant ListModel::data(const QModelIndex& index, int role) const {
             return (qobject_cast<QObject*>(m_list.at(index.row())->item()))->objectName();
             break;
         default:
-            /*if( m_list.at(index.row())->hasCustomRoles())
-        {*/
             if(role >= Qt::UserRole + 5 && role < m_lastRoleIndex) {
                 const QByteArray& roleName = m_roles.value(role);
                 QVariant value = m_list.at(index.row())->item()->property(roleName);
                 return value;
             } else
                 return QVariant();
-            /*}
-        else
-        return QVariant();*/
     }
     return QVariant();
 }
 
+bool ListModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if(index.isValid() && index.row() < m_list.size()) {
+        if(role >= Qt::UserRole + 5 && role < m_lastRoleIndex) {
+            const QByteArray& roleName = m_roles.value(role);
+            m_list.at(index.row())->setProperty(roleName, value);
+            return true;
+        }
+    }
+    return false;
+}
+
 ListModel::~ListModel() {
-    //! \todo !!! Большой вопрос необходимо ли вызывать clear, т.к. в списках лежат кнопки родитель
-    //! которых - объект QObject.
-    // clear();
 }
 
 void ListModel::appendRow(ListItem* item) {
@@ -214,19 +217,6 @@ bool ListModel::removeRow(int row, const QModelIndex& parent) {
     return true;
 }
 
-bool ListModel::removeRows(int row, int count, const QModelIndex& parent) {
-    Q_UNUSED(parent);
-    if(row < 0 || (row + count) > m_list.size())
-        return false;
-    beginRemoveRows(QModelIndex(), row, row + count - 1);
-    for(int i = 0; i < count; ++i) {
-        deleteObject(m_list.takeAt(row));
-    }
-    endRemoveRows();
-    emit countChanged(m_list.size());
-    return true;
-}
-
 ListItem* ListModel::take(int row) {
     beginRemoveRows(QModelIndex(), row, row);
     ListItem* item = m_list.takeAt(row);
@@ -281,11 +271,12 @@ ListModel::ErrorCode ListModel::initFromMap(const QVariantMap& map) {
         QVariantList itemsList = map.value(LMKey::Items).toList();
         foreach(QVariant itemVariant, itemsList) {
             QVariantMap itemMap = itemVariant.toMap();
+
             if(itemMap.contains(LMKey::ClassName)) {
                 QString className = itemMap.value(LMKey::ClassName).toString();
                 if(!className.isEmpty()) {
                     ListItem* itemObject = createObject(className);
-                    if(itemObject != 0) {
+                    if(itemObject != nullptr) {
                         itemObject->setParent(this);
 
                         if(itemMap.contains(LMKey::Properties)) {

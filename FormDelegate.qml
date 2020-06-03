@@ -52,23 +52,20 @@ Item {
                 TextField {
                     Layout.maximumWidth: numberWidth
                     text: model.number
+                    placeholderText: qsTr("№")
                     readOnly: !isEdit
 
                     onTextChanged: {
                         number = text
                     }
-
-//                    Connections {
-//                        target: formDelegate
-//                        onNeedSave: {
-//                            number = text
-//                        }
-//                    }
-
                 }
                 TextField {
                     text: model.text
+                    placeholderText: qsTr("Текст вопроса")
                     readOnly: !isEdit
+                    onTextChanged: {
+                        model.text = text
+                    }
                 }
 
                 Button {
@@ -96,11 +93,19 @@ Item {
                             TextField {
                                 Layout.maximumWidth: numberWidth
                                 text: model.number
+                                placeholderText: qsTr("№")
                                 readOnly: !isEdit
+                                onTextChanged: {
+                                    model.number = text
+                                }
                             }
                             TextField {
                                 text: model.text
+                                placeholderText: qsTr("Текст ответа")
                                 readOnly: !isEdit
+                                onTextChanged: {
+                                    model.text = text
+                                }
                             }
                         }
                     }
@@ -115,6 +120,7 @@ Item {
         anchors.right: parent.right
         Button {
             text: qsTr("Просмотр")
+            //https://github.com/dept2/Poppler-QML-plugin/tree/master/src
         }
         Button {
             text: isEdit ? qsTr("Завершить") : qsTr("Редактировать")

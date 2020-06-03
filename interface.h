@@ -1,10 +1,11 @@
 #ifndef INTERFACE_H
-#define INTERFACE_H
+#    define INTERFACE_H
 
-#include "items/form.h"
-#include "items/listmodel.h"
+#    include "items/form.h"
+#    include "items/listmodel.h"
 
-#include <QObject>
+#    include <QFuture>
+#    include <QObject>
 
 class Interface: public QObject {
     Q_OBJECT
@@ -15,37 +16,42 @@ public:
     ~Interface();
 
     ListModel* model();
-// вспомогательные функции для граф интерфейса
+    // вспомогательные функции для граф интерфейса
     Q_INVOKABLE Form* getForm(int index);
-    Q_INVOKABLE Question * getQst(Form * form, int index);
-    Q_INVOKABLE void addForm(QString title); 
-    Q_INVOKABLE void addQst(Form * frm);
-    Q_INVOKABLE void addAnsw(Question * qst);
+    Q_INVOKABLE Question* getQst(Form* form, int index);
+    Q_INVOKABLE void addForm(QString title);
+    Q_INVOKABLE void addQst(Form* frm);
+    Q_INVOKABLE void addAnsw(Question* qst);
     //    Q_INVOKABLE void deleteForm(int index);
 
-
-// основная логика
+    // основная логика
     /*
      * \brief Создание pdf-файла анкеты
      */
     Q_INVOKABLE void createPdf(Form* form);
     /*
-     * \brief Обработка результатов анкетирования
+     * \brief Запуск обработки результатов анкетирования
      */
-//    Q_INVOKABLE void processForms(Form* form, QString pathToPics);
+    Q_INVOKABLE void processForms(Form* form, QString pathToPics);
 
 signals:
     void modelChanged(ListModel* model);
+    void formProcessingTotalCount(int count);
     void formProcessingProgress(int progress);
-    void formProcessingFinished();
+    void formProcessingFinished(QString result);
 
 private:
-    ListModel* m_model;
+    ListModel* _model;
+    QString _formConfigName;
+    QString _dataDirPath;
+    QFuture<void> _future;
 
     // сохранение в json-файл
     void dumpForms();
     // загрузка из json-файл
     void loadForms();
+    // обработка фото
+    void processPics(Form* form, QString pathToPics);
 };
 
 #endif // INTERFACE_H
