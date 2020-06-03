@@ -64,7 +64,7 @@ public:
         return m_coord;
     }
 
-    Q_INVOKABLE void addAnswer(QString number, QString text) {
+    void addAnswer(QString number = "0", QString text = "") {
         Answer* ans = new Answer(this);
         ans->setText(text);
         ans->setNumber(number);

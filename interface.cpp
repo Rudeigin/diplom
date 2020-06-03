@@ -7,7 +7,7 @@
 #include <QFontMetrics>
 #include <QPainter>
 #include <QPdfWriter>
-
+#include <poppler/qt5/poppler-qt5.h>
 Interface::Interface(QObject* parent): QObject(parent) {
     qRegisterMetaType<Form*>();
     qRegisterMetaType<Question*>();
@@ -15,6 +15,11 @@ Interface::Interface(QObject* parent): QObject(parent) {
     qRegisterMetaType<ListModel*>();
 
     m_model = new ListModel(this);
+    loadForms();
+}
+
+Interface::~Interface() {
+    dumpForms();
 }
 
 void Interface::addForm(QString title) {
@@ -23,6 +28,14 @@ void Interface::addForm(QString title) {
     m_model->appendRow(frm);
 
     emit modelChanged(m_model);
+}
+
+void Interface::addQst(Form *frm) {
+    frm->addQuestion();
+}
+
+void Interface::addAnsw(Question *qst) {
+    qst->addAnswer();
 }
 
 /*
@@ -81,6 +94,29 @@ void Interface::createPdf(Form* form) {
         usedPageHeight += (metric.lineSpacing() - LINE_SPACING);
     }
     painter.end();
+
+    Poppler::Document* document = Poppler::Document::load(fileName);
+    if (!document || document->isLocked()) {
+        // ... error message ....
+        delete document;
+        return;
+    }
+    QImage image = document->page(0)->renderToImage(pdfWriter.resolution(), pdfWriter.resolution(),
+                                                    0, 0, pageSize.width(), pageSize.height());
+    if (image.isNull()) {
+        // ... error message ...
+        return;
+    }
+    image.save("aaa2.jpeg");
+    delete document;
+}
+
+void Interface::dumpForms() {
+
+}
+
+void Interface::loadForms() {
+
 }
 
 ListModel* Interface::model() {
@@ -89,4 +125,9 @@ ListModel* Interface::model() {
 
 Form* Interface::getForm(int index) {
     return qobject_cast<Form*>(m_model->row(index));
+}
+
+Question *Interface::getQst(Form *form, int index)
+{
+    return qobject_cast<Question *>(form->questions()->row(index));
 }

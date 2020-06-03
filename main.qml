@@ -15,8 +15,8 @@ import QtGraphicalEffects 1.0
 Window {
     id: win
     visible: true
-    width: 300
-    height: 370
+    width: 500
+    height: 500
     title: qsTr("Система обработки результатов анкетирования")
 
     property int mode: 0
@@ -223,7 +223,11 @@ Window {
     Component {
         id: formView
 
-        FormDelegate {}
+        FormDelegate {
+            Component.onCompleted: {
+                tabTitle = "Редактор"
+            }
+        }
     }
 
     ListModel {

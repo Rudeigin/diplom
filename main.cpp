@@ -3,13 +3,16 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QImageReader>
+#include <QDebug>
+#include <poppler/qt5/poppler-qt5.h>
 
 int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
 
-    Interface* inf = new Interface();
+    Interface* inf = new Interface(&app);
     inf->addForm("Оценка привычек в питании");
     Form* f = qobject_cast<Form*>(inf->model()->row(0));
     f->addQuestion(1, "Вопрос 1", false);
@@ -24,7 +27,8 @@ int main(int argc, char* argv[]) {
     inf->addForm("Оценка физической формы");
     //    inf->addForm("Анкета для курильщиков");
 
-    //    inf->createPdf(f);
+//        inf->createPdf(f);
+
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("Interface", inf);
 

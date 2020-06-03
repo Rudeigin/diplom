@@ -51,7 +51,7 @@ public:
         return _font;
     }
 
-    Q_INVOKABLE Question* addQuestion(int number, QString text, bool pickAFew) {
+    Question* addQuestion(int number = 0, QString text = "", bool pickAFew = false) {
         Question* qst = new Question(this);
         qst->setText(text);
         qst->setNumber(number);
