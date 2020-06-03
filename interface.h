@@ -6,6 +6,7 @@
 
 #    include <QFuture>
 #    include <QObject>
+#    include <QSqlQueryModel>
 
 class Interface: public QObject {
     Q_OBJECT
@@ -22,11 +23,12 @@ public:
     Q_INVOKABLE void addForm(QString title);
     Q_INVOKABLE void addQst(Form* frm);
     Q_INVOKABLE void addAnsw(Question* qst);
+    Q_INVOKABLE QSqlQueryModel* getSqlModel(Form* form);
     //    Q_INVOKABLE void deleteForm(int index);
 
     // основная логика
     /*
-     * \brief Создание pdf-файла анкеты
+     * \brief Запуск создания pdf-файла анкеты
      */
     Q_INVOKABLE void createPdf(Form* form);
     /*
@@ -36,6 +38,7 @@ public:
 
 signals:
     void modelChanged(ListModel* model);
+    void pdfCreatingFinished(QString result);
     void formProcessingTotalCount(int count);
     void formProcessingProgress(int progress);
     void formProcessingFinished(QString result);
@@ -52,6 +55,8 @@ private:
     void loadForms();
     // обработка фото
     void processPics(Form* form, QString pathToPics);
+    // создание pdf
+    void createFormPdf(Form* form);
 };
 
 #endif // INTERFACE_H

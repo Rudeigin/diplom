@@ -8,8 +8,6 @@ Item {
     property int numberWidth: 50
     property bool isEdit: false
 
-    signal needSave()
-
     Text {
         id: title
         text: form.title
@@ -127,19 +125,50 @@ Item {
             onClicked: {
                 isEdit = !isEdit
                 if(!isEdit) {
-                    needSave()
                     Interface.createPdf(form)
+                    dummyLoader.sourceComponent = dummy
+                    view.opacity = 0.8
                 }
             }
         }
     }
 
-    Dialog {
-        id: addQ
+
+    Connections{
+        target: Interface
+        onPdfCreatingFinished: {
+            dummyLoader.sourceComponent = null
+            view.opacity = 1
+        }
     }
 
-    Dialog {
-        id: addA
-        property QtObject qst
+    Loader {
+        id: dummyLoader
+        anchors.fill: parent
+        onLoaded: console.log("loaded")
+    }
+
+    Component {
+        // заглушка создания
+        id: dummy
+
+        Rectangle {
+            anchors.fill: parent
+            color: "gray"
+            opacity: 0.85
+            Text {
+                anchors.bottom: prB.top
+                anchors.bottomMargin: 5
+                text: qsTr("Выполняется создание pdf-файла...")
+            }
+
+            ProgressBar {
+                id: prB
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 100
+                width: parent.width
+                indeterminate: true
+            }
+        }
     }
 }

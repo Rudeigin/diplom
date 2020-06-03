@@ -1,4 +1,4 @@
-QT += quick
+QT += quick sql
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -14,6 +14,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     items/listmodel.cpp \
+    items/tablesqlmodel.cpp \
         main.cpp \
     interface.cpp
 
@@ -36,6 +37,7 @@ HEADERS += \
     items/listitem.h \
     items/listmodel.h \
     items/question.h \
+    items/tablesqlmodel.h \
     pageDefines.h \
     interface.h
 

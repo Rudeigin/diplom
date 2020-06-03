@@ -12,7 +12,10 @@
 #include <QJsonParseError>
 #include <QPainter>
 #include <QPdfWriter>
+#include <QSqlQuery>
 #include <QtConcurrent/QtConcurrent>
+
+//#include <unistd.h>
 
 Interface::Interface(QObject* parent): QObject(parent) {
     // для ListModel
@@ -24,6 +27,7 @@ Interface::Interface(QObject* parent): QObject(parent) {
     qRegisterMetaType<Question*>();
     qRegisterMetaType<Form*>();
     qRegisterMetaType<ListModel*>();
+    qRegisterMetaType<QSqlQueryModel*>();
 
     _model = new ListModel(this);
     _formConfigName = "forms.json";
@@ -51,6 +55,76 @@ void Interface::addAnsw(Question* qst) {
     qst->addAnswer();
 }
 
+QSqlQueryModel* Interface::getSqlModel(Form* form) {
+    QString dbFileName = _dataDirPath + form->title() + QDir::separator() + "form.db";
+
+    if(!QFile(dbFileName).exists()) {
+        QFile dbFile(dbFileName);
+        if(dbFile.open(QIODevice::WriteOnly)) {
+            dbFile.close();
+            QSqlDatabase temp = QSqlDatabase::addDatabase("QSQLITE");
+            temp.setHostName("NameDataBase");
+            temp.setDatabaseName(dbFileName);
+            if(!temp.open()) {
+                return nullptr;
+            }
+            QSqlQuery query(temp);
+            QString queryStr = "CREATE TABLE NameTable ("
+                               "id INTEGER PRIMARY KEY AUTOINCREMENT, ";
+            //            foreach(ListItem* it, form->questions()->items()) {
+            //                queryStr += tr("%1 VARCHAR(255),
+            //                ").arg(it->property("number").toString() + ".");
+            //            }
+            queryStr += "v1 "
+                        "VARCHAR(255), v2 VARCHAR(255));";
+            queryStr.remove(queryStr.length() - 2, 2);
+            queryStr += " )";
+            if(!query.exec(queryStr)) {
+                qDebug() << "DataBase: error of create " << query.lastQuery();
+                temp.close();
+                return nullptr;
+            }
+            queryStr.clear();
+            queryStr = "INSERT INTO NameTable ( ";
+            foreach(ListItem* it, form->questions()->items()) {
+                queryStr += tr(" v%1, ").arg(it->property("number").toInt());
+            }
+            queryStr.remove(queryStr.length() - 2, 2);
+            queryStr += " ) VALUES (";
+            foreach(ListItem* it, form->questions()->items()) {
+                queryStr += tr(" :v%1, ").arg(it->property("number").toInt());
+            }
+            queryStr.remove(queryStr.length() - 2, 2);
+            queryStr += " );";
+            foreach(ListItem* it, form->questions()->items()) {
+                query.bindValue(tr(":v%1").arg(it->property("number").toInt()), "t");
+            }
+            if(!query.exec(queryStr)) {
+                qDebug() << "DataBase: error of insert " << query.lastQuery();
+                temp.close();
+                return nullptr;
+            }
+            temp.close();
+        } else {
+            return nullptr;
+        }
+    }
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setHostName("NameDataBase");
+    db.setDatabaseName(dbFileName);
+
+    QSqlQueryModel* sqlModel;
+    if(db.open()) {
+        // QObject за собой подчистит
+        sqlModel = new QSqlQueryModel(this);
+        sqlModel->setQuery("SELECT * FROM NameTable");
+    } else {
+        return nullptr;
+    }
+
+    return sqlModel;
+}
+
 /*
  * Памятка, почему я не разделила заполнение координат и создание pdf:
  * координаты необходимы только при уже созданном когда-то pdf,
@@ -59,7 +133,31 @@ void Interface::addAnsw(Question* qst) {
  */
 
 void Interface::createPdf(Form* form) {
-    const QString fileName(QDir::homePath() + QDir::separator() + form->title() + ".pdf");
+    _future = QtConcurrent::run(this, &Interface::createFormPdf, form);
+    //    Poppler::Document* document = Poppler::Document::load(fileName);
+    //    if(!document || document->isLocked()) {
+    //        // TODO ... error message ....
+    //        delete document;
+    //        return;
+    //    }
+    //    QImage image = document->page(0)->renderToImage(
+    //        pdfWriter.resolution(), pdfWriter.resolution(), 0, 0, pageSize.width(),
+    //        pageSize.height());
+    //    if(image.isNull()) {
+    //        // TODO ... error message ...
+    //        return;
+    //    }
+    //    image.save("aaa2.jpeg");
+    //    delete document;
+}
+
+void Interface::createFormPdf(Form* form) {
+    QString dirPath = QDir::cleanPath(_dataDirPath + form->title());
+    if(!QDir().mkpath(dirPath)) {
+        emit pdfCreatingFinished(tr("Ошибка создания директории."));
+        return;
+    }
+    const QString fileName(dirPath + QDir::separator() + form->title() + ".pdf");
 
     QPdfWriter pdfWriter(fileName);
     pdfWriter.setPageSize(QPageSize(QPageSize::A4));
@@ -106,40 +204,29 @@ void Interface::createPdf(Form* form) {
         usedPageHeight += (metric.lineSpacing() - LINE_SPACING);
     }
     painter.end();
-
-    Poppler::Document* document = Poppler::Document::load(fileName);
-    if(!document || document->isLocked()) {
-        // TODO ... error message ....
-        delete document;
-        return;
-    }
-    QImage image = document->page(0)->renderToImage(
-        pdfWriter.resolution(), pdfWriter.resolution(), 0, 0, pageSize.width(), pageSize.height());
-    if(image.isNull()) {
-        // TODO ... error message ...
-        return;
-    }
-    image.save("aaa2.jpeg");
-    delete document;
+    qDebug() << "создание завершено";
+    emit pdfCreatingFinished("Создание pdf-файла завершено.");
 }
 
 void Interface::processForms(Form* form, QString pathToPics) {
+    pathToPics.remove("file://");
     _future = QtConcurrent::run(this, &Interface::processPics, form, pathToPics);
 }
 
 void Interface::processPics(Form* form, QString pathToPics) {
     Q_UNUSED(form)
+    qDebug() << "обработка начата";
 
     QDir dirInf(pathToPics);
     emit formProcessingTotalCount(dirInf.entryList(QDir::Files).count());
-
+    qDebug().noquote() << tr("обнаружено %1 файлов").arg(dirInf.entryList(QDir::Files).count());
     int progress = 0;
     foreach(QString fileName, dirInf.entryList(QDir::Files)) {
         // TODO тут часть во имя opencv
-        system("pause 10");
         emit formProcessingProgress(progress++);
     }
-    emit formProcessingFinished("");
+    qDebug() << "обработка завершена";
+    emit formProcessingFinished("Обработка успешно завершена.");
 }
 
 void Interface::dumpForms() {

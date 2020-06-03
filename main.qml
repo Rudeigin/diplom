@@ -195,16 +195,17 @@ Window {
                         switch(mode) {
                         case 1:
                             //Передать номер анкеты -> запустить cv
-                            fileDialog.form = Interface.getForm(formsLView.currentIndex)
+                            fileDialog.form = Interface.getForm(index)
                             fileDialog.open()
                             break;
                         case 2:
                             //Открыть анкету
-                            stack.push(formView, {"form" : Interface.getForm(formsLView.currentIndex)})
+                            stack.push(formView, {"form" : Interface.getForm(index)})
                             break;
                         case 3:
                             //Открыть базу данных
-                            stack.push(baseView)
+                            stack.push(baseView, {"tableModel" : Interface.getSqlModel(Interface.getForm(index)),
+                                                  "form" : Interface.getForm(index)})
                             break;
                         default:
                             stack.pop(null)
@@ -237,8 +238,8 @@ Window {
         selectExisting: true
         onAccepted: {
             console.log("You chose: " + fileDialog.fileUrls)
-            Interface.processForms(form, fileDialog.fileUrls)
             dummy.visible = true
+            Interface.processForms(form, fileDialog.fileUrls)
         }
         onRejected: {
             console.log("Canceled")
@@ -296,61 +297,29 @@ Window {
         }
     }
 
-    ListModel {
-        id: base
-        ListElement {
-            fio: "Петров А. А."
-            answ1: "3"
-            answ2: "1, 2"
-            answ3: "1"
-            answ4: "5"
-            answ5: "3"
-            answ6: "4"
-            answ7: "2, 4"
-            answ8: "3"
-        }
-        ListElement {
-            fio: "Козин С. Е."
-            answ1: "2"
-            answ2: "1, 3"
-            answ3: "2"
-            answ4: "4"
-            answ5: "3"
-            answ6: "4"
-            answ7: "1, 4"
-            answ8: "1"
-        }
-        ListElement {
-            fio: "Сидорчукова В. В."
-            answ1: "2"
-            answ2: "3, 4"
-            answ3: "2"
-            answ4: "3"
-            answ5: "1"
-            answ6: "2"
-            answ7: "2, 3"
-            answ8: "3"
-        }
-    }
-
     Component {
         id: baseView
 
-        TableView {
-            id: table
-            anchors.fill: parent
-            clip: true
-            model: base
+        ColumnLayout {
+            id: baseLt
+            property QtObject tableModel
+            property QtObject form
 
-            TableViewColumn { role: "fio"; title: "ФИО"; width: table.width * 20 / 100;  }
-            TableViewColumn { role: "answ1"; title: "1"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ2"; title: "2"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ3"; title: "3"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ4"; title: "4"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ5"; title: "5"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ6"; title: "6"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ7"; title: "7"; width: table.width * 10 / 100 }
-            TableViewColumn { role: "answ8"; title: "8"; width: table.width * 10 / 100 }
+            Text {
+                id: title
+                text: baseLt.form.title
+                wrapMode: Text.WordWrap
+                font.bold: true
+                font.pixelSize: 18
+            }
+
+            TableView {
+                id: table
+                width: parent.width
+                Layout.fillHeight: true
+                clip: true
+                model: baseLt.tableModel
+            }
         }
     }
 }
