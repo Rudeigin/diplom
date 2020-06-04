@@ -315,11 +315,29 @@ Window {
 
             TableView {
                 id: table
-                width: parent.width
+                Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
                 model: baseLt.tableModel
+                resources: {
+                    var roleList = baseLt.tableModel.userRoleNames
+                    var temp = []
+                    for(var i in roleList){
+                        var role  = roleList[i]
+                        temp.push(columnComponent.createObject(table, { "role": role, "title": role}))
+                    }
+                    return temp
+                }
+            }
+
+            Component{
+                id: columnComponent
+                TableViewColumn { width: 100 }
             }
         }
+
+//        Component {
+//            id
+//        }
     }
 }

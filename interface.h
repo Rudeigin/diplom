@@ -3,10 +3,10 @@
 
 #    include "items/form.h"
 #    include "items/listmodel.h"
+#    include "items/tablesqlmodel.h"
 
 #    include <QFuture>
 #    include <QObject>
-#    include <QSqlQueryModel>
 
 class Interface: public QObject {
     Q_OBJECT
@@ -21,9 +21,12 @@ public:
     Q_INVOKABLE Form* getForm(int index);
     Q_INVOKABLE Question* getQst(Form* form, int index);
     Q_INVOKABLE void addForm(QString title);
+    Q_INVOKABLE void deleteForm(int index);
     Q_INVOKABLE void addQst(Form* frm);
+    Q_INVOKABLE void deleteQst(Form* frm, int index);
     Q_INVOKABLE void addAnsw(Question* qst);
-    Q_INVOKABLE QSqlQueryModel* getSqlModel(Form* form);
+    Q_INVOKABLE void deleteAnsw(Question* qst, int index);
+    Q_INVOKABLE TableSqlModel* getSqlModel(Form* form);
     //    Q_INVOKABLE void deleteForm(int index);
 
     // основная логика

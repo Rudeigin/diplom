@@ -27,7 +27,7 @@ Interface::Interface(QObject* parent): QObject(parent) {
     qRegisterMetaType<Question*>();
     qRegisterMetaType<Form*>();
     qRegisterMetaType<ListModel*>();
-    qRegisterMetaType<QSqlQueryModel*>();
+    qRegisterMetaType<TableSqlModel*>();
 
     _model = new ListModel(this);
     _formConfigName = "forms.json";
@@ -47,15 +47,36 @@ void Interface::addForm(QString title) {
     emit modelChanged(_model);
 }
 
+void Interface::deleteForm(int index) {
+    ListItem* delIt = _model->take(index);
+    if(delIt) {
+        delIt->deleteLater();
+    }
+}
+
 void Interface::addQst(Form* frm) {
     frm->addQuestion();
+}
+
+void Interface::deleteQst(Form* frm, int index) {
+    ListItem* delIt = frm->questions()->take(index);
+    if(delIt) {
+        delIt->deleteLater();
+    }
 }
 
 void Interface::addAnsw(Question* qst) {
     qst->addAnswer();
 }
 
-QSqlQueryModel* Interface::getSqlModel(Form* form) {
+void Interface::deleteAnsw(Question* qst, int index) {
+    ListItem* delIt = qst->answers()->take(index);
+    if(delIt) {
+        delIt->deleteLater();
+    }
+}
+
+TableSqlModel* Interface::getSqlModel(Form* form) {
     QString dbFileName = _dataDirPath + form->title() + QDir::separator() + "form.db";
 
     if(!QFile(dbFileName).exists()) {
@@ -71,34 +92,26 @@ QSqlQueryModel* Interface::getSqlModel(Form* form) {
             QSqlQuery query(temp);
             QString queryStr = "CREATE TABLE NameTable ("
                                "id INTEGER PRIMARY KEY AUTOINCREMENT, ";
-            //            foreach(ListItem* it, form->questions()->items()) {
-            //                queryStr += tr("%1 VARCHAR(255),
-            //                ").arg(it->property("number").toString() + ".");
-            //            }
-            queryStr += "v1 "
-                        "VARCHAR(255), v2 VARCHAR(255));";
+            foreach(ListItem* it, form->questions()->items()) {
+                queryStr += tr("v%1 VARCHAR(255), ").arg(it->property("number").toString());
+            }
             queryStr.remove(queryStr.length() - 2, 2);
-            queryStr += " )";
+            queryStr += ");";
             if(!query.exec(queryStr)) {
                 qDebug() << "DataBase: error of create " << query.lastQuery();
                 temp.close();
                 return nullptr;
             }
             queryStr.clear();
-            queryStr = "INSERT INTO NameTable ( ";
+            queryStr = "INSERT INTO NameTable (";
             foreach(ListItem* it, form->questions()->items()) {
-                queryStr += tr(" v%1, ").arg(it->property("number").toInt());
+                queryStr += tr("v%1, ").arg(it->property("number").toString());
             }
             queryStr.remove(queryStr.length() - 2, 2);
-            queryStr += " ) VALUES (";
-            foreach(ListItem* it, form->questions()->items()) {
-                queryStr += tr(" :v%1, ").arg(it->property("number").toInt());
-            }
+            queryStr += ") VALUES (";
+            foreach(ListItem* it, form->questions()->items()) { queryStr += "'test', "; }
             queryStr.remove(queryStr.length() - 2, 2);
-            queryStr += " );";
-            foreach(ListItem* it, form->questions()->items()) {
-                query.bindValue(tr(":v%1").arg(it->property("number").toInt()), "t");
-            }
+            queryStr += ");";
             if(!query.exec(queryStr)) {
                 qDebug() << "DataBase: error of insert " << query.lastQuery();
                 temp.close();
@@ -113,11 +126,12 @@ QSqlQueryModel* Interface::getSqlModel(Form* form) {
     db.setHostName("NameDataBase");
     db.setDatabaseName(dbFileName);
 
-    QSqlQueryModel* sqlModel;
+    TableSqlModel* sqlModel;
     if(db.open()) {
         // QObject за собой подчистит
-        sqlModel = new QSqlQueryModel(this);
+        sqlModel = new TableSqlModel(this);
         sqlModel->setQuery("SELECT * FROM NameTable");
+        qDebug() << sqlModel->columnCount();
     } else {
         return nullptr;
     }

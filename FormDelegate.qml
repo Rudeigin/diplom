@@ -8,13 +8,18 @@ Item {
     property int numberWidth: 50
     property bool isEdit: false
 
-    Text {
+    TextField {
         id: title
         text: form.title
+        placeholderText: qsTr("Название анкеты")
+        readOnly: !isEdit
         wrapMode: Text.WordWrap
         font.bold: true
         font.pixelSize: 18
         anchors.horizontalCenter: parent.horizontalCenter
+        onTextChanged: {
+            form.title = text
+        }
     }
 
     Button {
@@ -36,12 +41,13 @@ Item {
         clip: true
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: addQstButton.bottom
+        anchors.top: isEdit ? addQstButton.bottom : title.bottom
         anchors.bottom: bottomButtons.top
         anchors.margins: 10
         spacing: 10
 
         delegate: ColumnLayout {
+            id: dlgate
             width: parent.width
             spacing: 5
             RowLayout {
@@ -71,6 +77,13 @@ Item {
                     visible: isEdit
                     onClicked: {
                         Interface.addAnsw(Interface.getQst(form, index))
+                    }
+                }
+                Button {
+                    text: "-"
+                    visible: isEdit
+                    onClicked: {
+                        Interface.deleteQst(form, index)
                     }
                 }
             }
@@ -105,9 +118,20 @@ Item {
                                     model.text = text
                                 }
                             }
+                            Button {
+                                text: "-"
+                                visible: isEdit
+                                onClicked: {
+                                    dlgate.delAnsw(index)
+                                }
+                            }
                         }
                     }
                 }
+            }
+
+            function delAnsw(answIndex) {
+                Interface.deleteAnsw(Interface.getQst(form, index), answIndex)
             }
         }
     }
