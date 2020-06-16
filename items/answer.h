@@ -4,17 +4,17 @@
 #include "listitem.h"
 
 #include <QObject>
-#include <QPoint>
+#include <QRect>
 
 class Answer: public ListItem {
     Q_OBJECT
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
     //Номер или буква ответа
     Q_PROPERTY(QString number READ number WRITE setNumber NOTIFY numberChanged)
-    Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
+    Q_PROPERTY(QRect coord READ coord WRITE setCoord NOTIFY coordChanged)
 public:
     explicit Answer(QObject* parent = nullptr): ListItem(parent) {
-        m_coord = QPoint();
+        m_coord = QRect();
         m_number = "0";
         m_text = "";
     }
@@ -27,7 +27,7 @@ public:
     void initFromMap(const QVariantMap& map) override {
         m_text = map.value("text").toString();
         m_number = map.value("number").toString();
-        m_coord = map.value("coord").toPoint();
+        m_coord = map.value("coord").toRect();
     }
 
     QVariantMap toMap() const override {
@@ -44,7 +44,7 @@ public:
     QString number() const {
         return m_number;
     }
-    QPoint coord() const {
+    QRect coord() const {
         return m_coord;
     }
 
@@ -67,7 +67,7 @@ public slots:
         emit dataChanged();
     }
 
-    void setCoord(QPoint coord) {
+    void setCoord(QRect coord) {
         if(m_coord == coord)
             return;
 
@@ -79,12 +79,12 @@ public slots:
 signals:
     void textChanged(QString text);
     void numberChanged(QString number);
-    void coordChanged(QPoint coord);
+    void coordChanged(QRect coord);
 
 private:
     QString m_text;
     QString m_number;
-    QPoint m_coord;
+    QRect m_coord;
 };
 Q_DECLARE_METATYPE(Answer)
 #endif // ANSWER_H

@@ -15,7 +15,12 @@
 #include <QSqlQuery>
 #include <QtConcurrent/QtConcurrent>
 
-//#include <unistd.h>
+#include <opencv4/opencv2/core.hpp>
+#include <opencv4/opencv2/highgui.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
+#include <unistd.h>
+
+using namespace cv;
 
 Interface::Interface(QObject* parent): QObject(parent) {
     // для ListModel
@@ -199,6 +204,8 @@ void Interface::createFormPdf(Form* form) {
             Qt::TextWordWrap,
             tr("%1. %2").arg(qst->number()).arg(qst->text()));
 
+        qst->setCoord(
+            QRect(pageSize.x(), pageSize.y() + usedPageHeight, qstRect.width(), qstRect.height()));
         usedPageHeight += qstRect.height() + LINE_SPACING;
 
         foreach(ListItem* a, qst->answers()->items()) {
@@ -213,6 +220,8 @@ void Interface::createFormPdf(Form* form) {
                 pageSize.height() - usedPageHeight,
                 Qt::TextWordWrap,
                 tr("%1. %2").arg(answ->number()).arg(answ->text()));
+            answ->setCoord(QRect(
+                pageSize.x(), pageSize.y() + usedPageHeight, answRect.width(), answRect.height()));
             usedPageHeight += answRect.height() + LINE_SPACING;
         }
         usedPageHeight += (metric.lineSpacing() - LINE_SPACING);
@@ -237,6 +246,22 @@ void Interface::processPics(Form* form, QString pathToPics) {
     int progress = 0;
     foreach(QString fileName, dirInf.entryList(QDir::Files)) {
         // TODO тут часть во имя opencv
+        QString pic = pathToPics + QDir::separator() + fileName;
+        pic.remove("file://");
+        qDebug() << pic;
+        Mat img = cv::imread(pic.toStdString());
+        if(img.empty()) {
+            qDebug() << "Невозможно открыть изображение: " << fileName;
+        } else {
+            Mat binImg;
+            //            cv::adaptiveThreshold(
+            //                img, binImg, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY,
+            //                2, 2);
+            //            if(binImg.empty()) {
+            //                qDebug() << "Что-то пошло не так";
+            //            }
+            cv::imshow("test", img);
+        }
         emit formProcessingProgress(progress++);
     }
     qDebug() << "обработка завершена";

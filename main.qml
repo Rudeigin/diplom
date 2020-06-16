@@ -189,7 +189,14 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                     implicitHeight: 80
                     implicitWidth: 250
-                    text: title
+
+                    Text {
+                        anchors.fill: parent
+                        text: title
+                        wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
 
                     onClicked: {
                         switch(mode) {

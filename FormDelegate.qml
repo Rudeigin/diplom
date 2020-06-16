@@ -53,6 +53,15 @@ Item {
             RowLayout {
                 id: qst
                 spacing: 5
+                CheckBox {
+                    checked: model.pickAFew
+                    visible: isEdit
+                    padding: 0
+                    onCheckedChanged: {
+                        model.pickAFew = checked
+                    }
+                }
+
                 TextField {
                     Layout.maximumWidth: numberWidth
                     text: model.number
@@ -64,6 +73,7 @@ Item {
                     }
                 }
                 TextField {
+                    Layout.fillWidth: true
                     text: model.text
                     placeholderText: qsTr("Текст вопроса")
                     readOnly: !isEdit
@@ -75,6 +85,7 @@ Item {
                 Button {
                     text: "+"
                     visible: isEdit
+                    Layout.maximumWidth: numberWidth
                     onClicked: {
                         Interface.addAnsw(Interface.getQst(form, index))
                     }
@@ -82,6 +93,7 @@ Item {
                 Button {
                     text: "-"
                     visible: isEdit
+                    Layout.maximumWidth: numberWidth
                     onClicked: {
                         Interface.deleteQst(form, index)
                     }
@@ -121,6 +133,7 @@ Item {
                             Button {
                                 text: "-"
                                 visible: isEdit
+                                Layout.maximumWidth: numberWidth
                                 onClicked: {
                                     dlgate.delAnsw(index)
                                 }

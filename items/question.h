@@ -5,14 +5,14 @@
 #include "listmodel.h"
 
 #include <QObject>
-#include <QPoint>
+#include <QRect>
 
 class Question: public ListItem {
     Q_OBJECT
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
     Q_PROPERTY(int number READ number WRITE setNumber NOTIFY numberChanged)
     Q_PROPERTY(bool pickAFew READ pickAFew WRITE setPickAFew NOTIFY pickAFewChanged)
-    Q_PROPERTY(QPoint coord READ coord WRITE setCoord NOTIFY coordChanged)
+    Q_PROPERTY(QRect coord READ coord WRITE setCoord NOTIFY coordChanged)
     Q_PROPERTY(ListModel* answers READ answers NOTIFY answersChanged)
 public:
     explicit Question(QObject* parent = nullptr): ListItem(parent) {
@@ -35,7 +35,7 @@ public:
         m_number = map.value("number").toInt();
         m_pickAFew = map.value("pickAFew").toBool();
         m_answers->initFromMap(map.value("answers").toMap());
-        m_coord = map.value("coord").toPoint();
+        m_coord = map.value("coord").toRect();
     }
 
     QVariantMap toMap() const override {
@@ -60,7 +60,7 @@ public:
     ListModel* answers() const {
         return m_answers;
     }
-    QPoint coord() const {
+    QRect coord() const {
         return m_coord;
     }
 
@@ -102,7 +102,7 @@ public slots:
         emit dataChanged();
     }
 
-    void setCoord(QPoint coord) {
+    void setCoord(QRect coord) {
         if(m_coord == coord)
             return;
 
@@ -115,7 +115,7 @@ signals:
     void textChanged(QString text);
     void numberChanged(int number);
     void pickAFewChanged(bool pickAFew);
-    void coordChanged(QPoint coord);
+    void coordChanged(QRect coord);
     void answersChanged(ListModel* answers);
 
 private:
@@ -123,7 +123,7 @@ private:
     int m_number;
     bool m_pickAFew;
     ListModel* m_answers;
-    QPoint m_coord;
+    QRect m_coord;
 };
 Q_DECLARE_METATYPE(Question)
 #endif // QUESTION_H
