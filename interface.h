@@ -30,6 +30,7 @@ public:
     Q_INVOKABLE void deleteQst(Form* frm, int index);
     Q_INVOKABLE void addAnsw(Question* qst);
     Q_INVOKABLE void deleteAnsw(Question* qst, int index);
+    Q_INVOKABLE void correl(Form* form);
     Q_INVOKABLE TableSqlModel* getSqlModel(Form* form);
     //    Q_INVOKABLE void deleteForm(int index);
 
@@ -56,6 +57,8 @@ private:
     QString _dataDirPath;
     QFuture<void> _future;
 
+    // создание пустой таблицы
+    void createTable(Form* form);
     // сохранение в json-файл
     void dumpForms();
     // загрузка из json-файл

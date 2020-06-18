@@ -185,6 +185,7 @@ Window {
                 Layout.alignment: Qt.AlignHCenter
                 model: Interface.model
                 spacing: 7
+                clip: true
                 delegate: Button {
                     anchors.horizontalCenter: parent.horizontalCenter
                     implicitHeight: 80
@@ -322,6 +323,8 @@ Window {
                 wrapMode: Text.WordWrap
                 font.bold: true
                 font.pixelSize: 18
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
             }
 
             TableView {
@@ -341,14 +344,22 @@ Window {
                 }
             }
 
+            RowLayout {
+                Button {
+                    text: "Корреляция"
+                    onClicked: {
+                        Interface.correl(form)
+                    }
+                }
+                Button {
+                    text: "Регрессия"
+                }
+            }
+
             Component{
                 id: columnComponent
                 TableViewColumn { width: 100 }
             }
         }
-
-//        Component {
-//            id
-//        }
     }
 }

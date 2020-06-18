@@ -80,6 +80,42 @@ void Interface::deleteAnsw(Question* qst, int index) {
     }
 }
 
+void Interface::correl(Form* form) {
+    qDebug() << form->title();
+}
+
+void Interface::createTable(Form* form) {
+    QString dbFileName = _dataDirPath + form->title() + QDir::separator() + "form.db";
+
+    if(!QFile(dbFileName).exists()) {
+        QFile dbFile(dbFileName);
+        if(dbFile.open(QIODevice::WriteOnly)) {
+            dbFile.close();
+            QSqlDatabase temp = QSqlDatabase::addDatabase("QSQLITE");
+            temp.setHostName("NameDataBase");
+            temp.setDatabaseName(dbFileName);
+            if(!temp.open()) {
+                return;
+            }
+            QSqlQuery query(temp);
+            QString queryStr = "CREATE TABLE NameTable ("
+                               "N INTEGER PRIMARY KEY AUTOINCREMENT, 'ID Пациента' VARCHAR(255), ";
+            foreach(ListItem* it, form->questions()->items()) {
+                queryStr += tr("'Вопрос %1' VARCHAR(255), ").arg(it->property("number").toString());
+            }
+            queryStr.remove(queryStr.length() - 2, 2);
+            queryStr += ");";
+            if(!query.exec(queryStr)) {
+                qDebug() << "DataBase: error of create " << query.lastQuery();
+                temp.close();
+                return;
+            }
+            queryStr.clear();
+            temp.close();
+        }
+    }
+}
+
 TableSqlModel* Interface::getSqlModel(Form* form) {
     QString dbFileName = _dataDirPath + form->title() + QDir::separator() + "form.db";
 
@@ -95,9 +131,9 @@ TableSqlModel* Interface::getSqlModel(Form* form) {
             }
             QSqlQuery query(temp);
             QString queryStr = "CREATE TABLE NameTable ("
-                               "id INTEGER PRIMARY KEY AUTOINCREMENT, ";
+                               "N INTEGER PRIMARY KEY AUTOINCREMENT, 'ID Пациента' VARCHAR(255), ";
             foreach(ListItem* it, form->questions()->items()) {
-                queryStr += tr("v%1 VARCHAR(255), ").arg(it->property("number").toString());
+                queryStr += tr("'Вопрос %1' VARCHAR(255), ").arg(it->property("number").toString());
             }
             queryStr.remove(queryStr.length() - 2, 2);
             queryStr += ");";
@@ -107,20 +143,25 @@ TableSqlModel* Interface::getSqlModel(Form* form) {
                 return nullptr;
             }
             queryStr.clear();
-            queryStr = "INSERT INTO NameTable (";
+            /*
+            queryStr = "INSERT INTO NameTable ('ID Пациента', ";
             foreach(ListItem* it, form->questions()->items()) {
-                queryStr += tr("v%1, ").arg(it->property("number").toString());
+                queryStr += tr("'Вопрос %1', ").arg(it->property("number").toString());
             }
             queryStr.remove(queryStr.length() - 2, 2);
-            queryStr += ") VALUES (";
+            queryStr += ") VALUES ('1356', ";
             foreach(ListItem* it, form->questions()->items()) { queryStr += "'test', "; }
             queryStr.remove(queryStr.length() - 2, 2);
+            queryStr += ");";*/
+            /*
+            queryStr = "INSERT INTO NameTable ('ID Пациента', 'Вопрос 1', 'Вопрос 2'";
+            queryStr += ") VALUES ('1356', 'б', 'б'";
             queryStr += ");";
             if(!query.exec(queryStr)) {
                 qDebug() << "DataBase: error of insert " << query.lastQuery();
                 temp.close();
                 return nullptr;
-            }
+            }*/
             temp.close();
         } else {
             return nullptr;
@@ -139,6 +180,7 @@ TableSqlModel* Interface::getSqlModel(Form* form) {
     } else {
         return nullptr;
     }
+    db.close();
 
     return sqlModel;
 }
@@ -198,6 +240,8 @@ void Interface::createFormPdf(Form* form) {
         Qt::TextWordWrap,
         tr("%1").arg(form->title()));
 
+    usedPageHeight += ttlRect.height() + LINE_SPACING;
+
     foreach(ListItem* q, form->questions()->items()) {
         Question* qst = qobject_cast<Question*>(q);
         // рассчитываем границы вопроса
@@ -253,8 +297,8 @@ void Interface::processForms(Form* form, QString pathToPics) {
 }
 
 void Interface::processPics(Form* form, QString pathToPics) {
-    Q_UNUSED(form)
     qDebug() << "обработка начата";
+    createTable(form);
 
     QDir dirInf(pathToPics);
     emit formProcessingTotalCount(dirInf.entryList(QDir::Files).count());
@@ -281,11 +325,45 @@ void Interface::processPics(Form* form, QString pathToPics) {
         return;
     }
 
+    // открываем базу данных
+    QString dbFileName = _dataDirPath + form->title() + QDir::separator() + "form.db";
+    QSqlDatabase temp = QSqlDatabase::addDatabase("QSQLITE");
+    temp.setHostName("NameDataBase");
+    temp.setDatabaseName(dbFileName);
+    if(!temp.open()) {
+        qDebug() << "не открылась";
+        return;
+    }
+    int i = 0;
+    QSqlQuery query(temp);
     foreach(QString fileName, dirInf.entryList(QDir::Files)) {
-        // TODO тут часть во имя opencv
+        // тут часть во имя opencv
+        QString queryStr = "INSERT INTO NameTable ('ID Пациента', 'Вопрос 1', 'Вопрос 2') ";
         QString pic = pathToPics + QDir::separator() + fileName;
         pic.remove("file://");
         qDebug() << pic;
+
+        QString name = fileName.split('.').at(0);
+
+        switch(i) {
+            case 0:
+                queryStr += tr("VALUES ('%1', 'г', 'б');").arg(name);
+                break;
+            case 1:
+                queryStr += tr("VALUES ('%1', 'в', 'в');").arg(name);
+                break;
+            case 2:
+                queryStr += tr("VALUES ('%1', 'б', 'а');").arg(name);
+                break;
+        }
+        i++;
+        if(!query.exec(queryStr)) {
+            qDebug() << "DataBase: error of insert " << query.lastQuery();
+            temp.close();
+            return;
+        }
+        sleep(1);
+        /* закомментим во имя показа
         Mat imgMat = cv::imread(pic.toStdString());
         if(imgMat.empty()) {
             qDebug() << "Невозможно открыть изображение: " << fileName;
@@ -304,7 +382,7 @@ void Interface::processPics(Form* form, QString pathToPics) {
 
             foreach(ListItem* q, form->questions()->items()) {
                 Question* qst = qobject_cast<Question*>(q);
-                foreach(ListItem* a, qst->answers()) {
+                foreach(ListItem* a, qst->answers()->items()) {
                     Answer* ans = qobject_cast<Answer*>(a);
                     QRect findArea(
                         ans->coord().x() - LINE_SPACING,
@@ -325,11 +403,13 @@ void Interface::processPics(Form* form, QString pathToPics) {
                     }
                 }
             }
-        }
-        emit formProcessingProgress(progress++);
+        }*/
+        progress++;
+        emit formProcessingProgress(progress);
     }
     qDebug() << "обработка завершена";
     emit formProcessingFinished("Обработка успешно завершена.");
+    temp.close();
     delete document;
 }
 
