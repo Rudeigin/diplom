@@ -207,7 +207,8 @@ Window {
                             break;
                         case 2:
                             //Открыть анкету
-                            stack.push(formView, {"form" : Interface.getForm(index)})
+                            stack.push(formView, {"form" : Interface.getForm(index),
+                                                  "formIndex": index})
                             break;
                         case 3:
                             //Открыть базу данных
@@ -228,7 +229,7 @@ Window {
 
                 onClicked: {
                     // добавление новой анкеты
-                    Interface.addForm("sssss")
+                    Interface.addForm(qsTr("Без названия"))
                 }
             }
         }
@@ -300,6 +301,9 @@ Window {
         FormDelegate {
             Component.onCompleted: {
                 tabTitle = "Редактор"
+            }
+            onDeleted: {
+                stack.pop()
             }
         }
     }

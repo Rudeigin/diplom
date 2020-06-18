@@ -7,17 +7,16 @@
 #include <QDebug>
 #include <QDir>
 #include <QFontMetrics>
+#include <QGuiApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QPainter>
 #include <QPdfWriter>
+#include <QScreen>
 #include <QSqlQuery>
 #include <QtConcurrent/QtConcurrent>
 
-#include <opencv4/opencv2/core.hpp>
-#include <opencv4/opencv2/highgui.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
 #include <unistd.h>
 
 using namespace cv;
@@ -179,6 +178,7 @@ void Interface::createFormPdf(Form* form) {
     const QString fileName(dirPath + QDir::separator() + form->title() + ".pdf");
 
     QPdfWriter pdfWriter(fileName);
+    pdfWriter.setResolution(QGuiApplication::primaryScreen()->logicalDotsPerInch());
     pdfWriter.setPageSize(QPageSize(QPageSize::A4));
 
     QPainter painter(&pdfWriter);
@@ -188,10 +188,21 @@ void Interface::createFormPdf(Form* form) {
     QRectF pageSize = pdfWriter.pageLayout().paintRectPixels(pdfWriter.resolution());
 
     int usedPageHeight = 0;
+    // печатаем title
+    QRect ttlRect = metric.boundingRect(pageSize.toRect(), Qt::TextWordWrap, form->title());
+    painter.drawText(
+        pageSize.x() + (pageSize.width() - ttlRect.width()) / 2,
+        pageSize.y() + usedPageHeight,
+        pageSize.width(),
+        pageSize.height() - usedPageHeight,
+        Qt::TextWordWrap,
+        tr("%1").arg(form->title()));
+
     foreach(ListItem* q, form->questions()->items()) {
         Question* qst = qobject_cast<Question*>(q);
         // рассчитываем границы вопроса
-        QRect qstRect = metric.boundingRect(pageSize.toRect(), Qt::TextWordWrap, qst->text());
+        QString qT = tr("%1. %2").arg(qst->number()).arg(qst->text());
+        QRect qstRect = metric.boundingRect(pageSize.toRect(), Qt::TextWordWrap, qT);
         if(usedPageHeight + qstRect.height() > pageSize.height()) {
             pdfWriter.newPage();
             usedPageHeight = 0;
@@ -202,16 +213,18 @@ void Interface::createFormPdf(Form* form) {
             pageSize.width(),
             pageSize.height() - usedPageHeight,
             Qt::TextWordWrap,
-            tr("%1. %2").arg(qst->number()).arg(qst->text()));
+            qT);
 
-        qst->setCoord(
-            QRect(pageSize.x(), pageSize.y() + usedPageHeight, qstRect.width(), qstRect.height()));
+        //        qst->setCoord(
+        //            QRect(pageSize.x(), pageSize.y() + usedPageHeight, qstRect.width(),
+        //            qstRect.height()));
         usedPageHeight += qstRect.height() + LINE_SPACING;
 
         foreach(ListItem* a, qst->answers()->items()) {
             Answer* answ = qobject_cast<Answer*>(a);
             // рассчитываем границы ответа
-            QRect answRect = metric.boundingRect(pageSize.toRect(), Qt::TextWordWrap, answ->text());
+            QString aT = tr("%1. %2").arg(answ->number()).arg(answ->text());
+            QRect answRect = metric.boundingRect(pageSize.toRect(), Qt::TextWordWrap, aT);
             // рисуем вопрос на листе
             painter.drawText(
                 pageSize.x(),
@@ -219,10 +232,13 @@ void Interface::createFormPdf(Form* form) {
                 pageSize.width(),
                 pageSize.height() - usedPageHeight,
                 Qt::TextWordWrap,
-                tr("%1. %2").arg(answ->number()).arg(answ->text()));
-            answ->setCoord(QRect(
-                pageSize.x(), pageSize.y() + usedPageHeight, answRect.width(), answRect.height()));
+                aT);
             usedPageHeight += answRect.height() + LINE_SPACING;
+
+            QRect numRect = metric.boundingRect(
+                pageSize.toRect(), Qt::TextWordWrap, answ->number() + ". ");
+            answ->setCoord(QRect(
+                pageSize.x(), pageSize.y() + usedPageHeight, numRect.width(), numRect.height()));
         }
         usedPageHeight += (metric.lineSpacing() - LINE_SPACING);
     }
@@ -244,28 +260,77 @@ void Interface::processPics(Form* form, QString pathToPics) {
     emit formProcessingTotalCount(dirInf.entryList(QDir::Files).count());
     qDebug().noquote() << tr("обнаружено %1 файлов").arg(dirInf.entryList(QDir::Files).count());
     int progress = 0;
+
+    QString imgFileName = _dataDirPath + QDir::separator() + form->title() + QDir::separator() +
+        form->title() + ".pdf";
+    Poppler::Document* document = Poppler::Document::load(imgFileName);
+    if(!document || document->isLocked()) {
+        // TODO ... error message ....
+        delete document;
+        return;
+    }
+
+    QPdfWriter pdfWriter("");
+    pdfWriter.setResolution(QGuiApplication::primaryScreen()->logicalDotsPerInch());
+    QRectF pageSize = pdfWriter.pageLayout().paintRectPixels(pdfWriter.resolution());
+    // Исходное изображение анкеты ("чистое")
+    QImage image = document->page(0)->renderToImage(
+        pdfWriter.resolution(), pdfWriter.resolution(), 0, 0, pageSize.width(), pageSize.height());
+    if(image.isNull()) {
+        // TODO ... error message ...
+        return;
+    }
+
     foreach(QString fileName, dirInf.entryList(QDir::Files)) {
         // TODO тут часть во имя opencv
         QString pic = pathToPics + QDir::separator() + fileName;
         pic.remove("file://");
         qDebug() << pic;
-        Mat img = cv::imread(pic.toStdString());
-        if(img.empty()) {
+        Mat imgMat = cv::imread(pic.toStdString());
+        if(imgMat.empty()) {
             qDebug() << "Невозможно открыть изображение: " << fileName;
         } else {
-            Mat binImg;
-            //            cv::adaptiveThreshold(
-            //                img, binImg, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY,
-            //                2, 2);
-            //            if(binImg.empty()) {
-            //                qDebug() << "Что-то пошло не так";
-            //            }
-            cv::imshow("test", img);
+            Mat binMat;
+            cvtColor(imgMat, imgMat, cv::COLOR_RGBA2GRAY, 0);
+            cv::adaptiveThreshold(
+                imgMat, binMat, 200, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 11, 2);
+
+            // Переводим в QImage, потому что перевод из QImage в Mat хреново работает
+            // Получаем бинаризованный binImg с отметками анкетируемого
+            QImage binImg = MatToQImage(binMat);
+            // Вычитаем из бинаризованного изображение исходное
+            QImage result;
+            substract(binImg, image, result);
+
+            foreach(ListItem* q, form->questions()->items()) {
+                Question* qst = qobject_cast<Question*>(q);
+                foreach(ListItem* a, qst->answers()) {
+                    Answer* ans = qobject_cast<Answer*>(a);
+                    QRect findArea(
+                        ans->coord().x() - LINE_SPACING,
+                        ans->coord().y() - LINE_SPACING / 2,
+                        ans->coord().width(),
+                        ans->coord().height() + LINE_SPACING / 2);
+                    QImage cropped = result.copy(findArea);
+                    int blackPixels = 0;
+                    for(int i = 0; i < cropped.height(); i++) {
+                        QRgb* rgbLine = (QRgb*) cropped.constScanLine(i);
+                        for(int j = 0; j < cropped.width(); j++) {
+                            if(QColor(rgbLine[i]) == QColor("black"))
+                                blackPixels++;
+                        }
+                    }
+                    if(blackPixels > 50) {
+                        // тут заносим в БД
+                    }
+                }
+            }
         }
         emit formProcessingProgress(progress++);
     }
     qDebug() << "обработка завершена";
     emit formProcessingFinished("Обработка успешно завершена.");
+    delete document;
 }
 
 void Interface::dumpForms() {
@@ -315,4 +380,48 @@ Form* Interface::getForm(int index) {
 
 Question* Interface::getQst(Form* form, int index) {
     return qobject_cast<Question*>(form->questions()->row(index));
+}
+
+QImage Interface::MatToQImage(const Mat& mat) {
+    // 8-bits unsigned, NO. OF CHANNELS=1
+    if(mat.type() == CV_8UC1) {
+        // Set the color table (used to translate colour indexes to qRgb values)
+        QVector<QRgb> colorTable;
+        for(int i = 0; i < 256; i++)
+            colorTable.push_back(qRgb(i, i, i));
+        // Copy input Mat
+        const uchar* qImageBuffer = (const uchar*) mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage img(qImageBuffer, mat.cols, mat.rows, mat.step, QImage::Format_Indexed8);
+        img.setColorTable(colorTable);
+        return img;
+    }
+    // 8-bits unsigned, NO. OF CHANNELS=3
+    if(mat.type() == CV_8UC3) {
+        // Copy input Mat
+        const uchar* qImageBuffer = (const uchar*) mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage img(qImageBuffer, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+        return img.rgbSwapped();
+    } else {
+        qDebug() << "ERROR: Mat could not be converted to QImage.";
+        return QImage();
+    }
+}
+
+void Interface::substract(const QImage& left, const QImage& rigth, QImage& result) {
+    int w = min(left.width(), rigth.width());
+    int h = min(left.height(), rigth.height());
+    w = min(w, result.width());
+    h = min(h, result.height());
+    //<-This ensures that you work only at the intersection of images areas
+
+    for(int i = 0; i < h; i++) {
+        QRgb* rgbLeft = (QRgb*) left.constScanLine(i);
+        QRgb* rgbRigth = (QRgb*) rigth.constScanLine(i);
+        QRgb* rgbResult = (QRgb*) result.constScanLine(i);
+        for(int j = 0; j < w; j++) {
+            rgbResult[j] = rgbLeft[j] - rgbRigth[j];
+        }
+    }
 }

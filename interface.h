@@ -8,6 +8,10 @@
 #    include <QFuture>
 #    include <QObject>
 
+#    include <opencv4/opencv2/core.hpp>
+#    include <opencv4/opencv2/highgui.hpp>
+#    include <opencv4/opencv2/imgproc.hpp>
+
 class Interface: public QObject {
     Q_OBJECT
     // Модель со всеми анкетами
@@ -60,6 +64,10 @@ private:
     void processPics(Form* form, QString pathToPics);
     // создание pdf
     void createFormPdf(Form* form);
+    // https://stackoverflow.com/questions/11170485/qimage-to-cvmat-convertion-strange-behaviour
+    QImage MatToQImage(const cv::Mat& mat);
+    // https://stackoverflow.com/questions/43760920/how-to-compare-two-rgb-images-in-qt
+    void substract(const QImage& left, const QImage& rigth, QImage& result);
 };
 
 #endif // INTERFACE_H

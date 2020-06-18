@@ -5,8 +5,11 @@ import QtQuick.Layouts 1.3
 Item {
     id: formDelegate
     property QtObject form
+    property int formIndex
     property int numberWidth: 50
     property bool isEdit: false
+
+    signal deleted()
 
     TextField {
         id: title
@@ -20,6 +23,20 @@ Item {
         onTextChanged: {
             form.title = text
         }
+    }
+
+    Button {
+        id: delFrmButton
+        text: qsTr("Удалить анкету")
+        anchors.left: parent.left
+        anchors.leftMargin: 10
+        anchors.top: title.bottom
+        anchors.topMargin: 10
+        onClicked: {
+            Interface.deleteForm(formIndex)
+            deleted()
+        }
+        visible: isEdit
     }
 
     Button {
