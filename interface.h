@@ -30,7 +30,9 @@ public:
     Q_INVOKABLE void deleteQst(Form* frm, int index);
     Q_INVOKABLE void addAnsw(Question* qst);
     Q_INVOKABLE void deleteAnsw(Question* qst, int index);
-    Q_INVOKABLE void correl(Form* form);
+    Q_INVOKABLE double correl(Form* form, int xQstIndex, int yQstIndex);
+    Q_INVOKABLE void regr(Form* form, int xQstIndex, int yQstIndex);
+    Q_INVOKABLE double regr(double x);
     Q_INVOKABLE TableSqlModel* getSqlModel(Form* form);
     //    Q_INVOKABLE void deleteForm(int index);
 
@@ -56,6 +58,8 @@ private:
     QString _formConfigName;
     QString _dataDirPath;
     QFuture<void> _future;
+
+    double _a, _b;
 
     // создание пустой таблицы
     void createTable(Form* form);

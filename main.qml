@@ -4,6 +4,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
 import QtQuick.Window 2.2
+import QtCharts 2.2
 import QtGraphicalEffects 1.0
 
 /*
@@ -348,17 +349,149 @@ Window {
                 Button {
                     text: "Корреляция"
                     onClicked: {
-                        Interface.correl(form)
+                        stack.push(correlView, {"form" : form})
                     }
                 }
                 Button {
                     text: "Регрессия"
+                    onClicked: {
+                        stack.push(regrView, {"form" : form})
+                        Interface.regr(form, 0, 1)
+                    }
                 }
             }
 
             Component{
                 id: columnComponent
                 TableViewColumn { width: 100 }
+            }
+            Component.onCompleted: {
+                tabTitle = "База данных"
+            }
+        }
+    }
+
+    Component {
+        id: correlView
+
+        ColumnLayout {
+            id: corLt
+            property QtObject form
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 5
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Label {
+                    text: "Вопрос:"
+                }
+
+                ComboBox {
+                    id: box
+                    model: form.questions
+                    textRole: "number"
+                    Component.onCompleted: currentIndex = 0
+                }
+            }
+
+            ListView {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                model: form.questions
+                clip: true
+                delegate: Label {
+                    text: "C вопросом " + model.number + ": " +
+                          Number(Interface.correl(form,
+                                                  box.currentIndex == -1 ? 0 : box.currentIndex,
+                                                  index)).toLocaleString(Qt.locale("de_DE"))
+                    visible: box.currentText != model.number
+                }
+            }
+
+            Component.onCompleted: {
+                tabTitle = "Корреляция"
+            }
+        }
+    }
+
+    Component {
+        id: regrView
+
+        ColumnLayout {
+            id: corLt
+            property QtObject form
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 5
+
+            Component.onCompleted: {
+                tabTitle = "Регрессия"
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Label {
+                    text: "Вопрос:"
+                }
+
+                ComboBox {
+                    id: box
+                    model: form.questions
+                    textRole: "number"
+                    Component.onCompleted: currentIndex = 0
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Label {
+                    text: "Вопрос:"
+                }
+
+                ComboBox {
+                    id: box2
+                    model: form.questions
+                    textRole: "number"
+                    Component.onCompleted: currentIndex = 1
+                }
+            }
+
+            ChartView {
+//                objectName: "pin1"
+                id: g1
+//                Layout.fillHeight: true
+//                Layout.fillWidth: true
+                width: 300
+                height: 300
+//                antialiasing: true
+//                localizeNumbers: true
+
+                SplineSeries {
+                    id: line
+                    color: "red"
+                    width: 1
+                    objectName: "line_pin1"
+                    onClicked: {
+                        console.log(line.count)
+                    }
+                }
+
+                Component.onCompleted: {
+                    axisY(line).max = 6;
+                    axisY(line).min = 1;
+                    axisY(line).titleText = "Вопрос 2"
+                    axisX(line).titleText = "Вопрос 1"
+                    axisX(line).max = 5;
+                    line.append(5, (2.2766 * 5 - 2.2787)) //_a = 2.2766;
+                    //_b = -2.2787;
+                    line.append(4, (2.2766 * 4 - 2.2787))
+                    line.append(3, (2.2766 * 3 - 2.2787))
+                    line.append(2, (2.2766 * 2 - 2.2787))
+                }
             }
         }
     }

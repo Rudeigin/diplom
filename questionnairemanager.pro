@@ -1,4 +1,4 @@
-QT += quick sql
+QT += quick sql widgets
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -44,4 +44,7 @@ HEADERS += \
 INCLUDEPATH += -I/usr/local/include/opencv4/
 LIBS += -L/usr/local/lib
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui
+#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+unix {
 LIBS += -lpoppler-qt5
+}
